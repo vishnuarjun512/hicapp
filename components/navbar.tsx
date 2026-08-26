@@ -1,6 +1,39 @@
+import { currentUser, navItems, users } from "@/lib/social-data";
 import { useMemo, useState } from "react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "./ui/sheet";
+import { Button } from "./ui/button";
+import Link from "next/link";
+import {
+  Bookmark,
+  Heart,
+  Home,
+  MenuIcon,
+  MessageCircle,
+  Search,
+  Settings,
+  UserRound,
+  Users,
+} from "lucide-react";
+import { Input } from "./ui/input";
+import UserAvatar from "./user-avatar";
+import { Badge } from "./ui/badge";
+import Brand from "./brand";
 
 export default function Navbar() {
+  const iconMap = {
+    home: Home,
+    users: Users,
+    message: MessageCircle,
+    user: UserRound,
+    bookmark: Bookmark,
+    settings: Settings,
+  };
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const results = useMemo(
@@ -17,17 +50,9 @@ export default function Navbar() {
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 lg:px-8">
         <Sheet>
           <SheetTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="icon"
-                className="lg:hidden"
-                aria-label="Open menu"
-              />
-            }
-          >
-            <Menu />
-          </SheetTrigger>
+            className="inline-flex size-8 items-center justify-center rounded-lg hover:bg-muted lg:hidden"
+            aria-label="Open menu"
+          ></SheetTrigger>
           <SheetContent side="left">
             <SheetHeader>
               <SheetTitle>

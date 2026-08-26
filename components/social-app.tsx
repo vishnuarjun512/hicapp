@@ -1,30 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useMemo, useState } from "react";
+
+import { useState } from "react";
 import {
   Bookmark,
   Check,
   ChevronDown,
   Heart,
   Home,
-  ImagePlus,
-  Loader2,
-  Menu,
   MessageCircle,
   MoreHorizontal,
-  Search,
   Send,
   Settings,
   Share2,
   Sparkles,
   UserRound,
   Users,
-  X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,13 +40,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -59,324 +48,15 @@ import {
   conversations,
   friendRequests,
   formatNumber,
-  navItems,
-  Post,
   posts,
   suggestions,
   User,
   users,
 } from "@/lib/social-data";
-
-const iconMap = {
-  home: Home,
-  users: Users,
-  message: MessageCircle,
-  user: UserRound,
-  bookmark: Bookmark,
-  settings: Settings,
-};
-
-function Brand() {
-  return (
-    <Link
-      href="/"
-      className="flex items-center gap-2 font-semibold tracking-tight"
-    >
-      <span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground">
-        <Sparkles className="size-4" />
-      </span>
-      <span className="text-lg">kindred</span>
-    </Link>
-  );
-}
-
-function UserAvatar({ user, size = "size-9" }: { user: User; size?: string }) {
-  return (
-    <Avatar className={size}>
-      <AvatarImage src={user.avatar} alt={`${user.name} avatar`} />
-      <AvatarFallback>
-        {user.name
-          .split(" ")
-          .map((part) => part[0])
-          .join("")}
-      </AvatarFallback>
-    </Avatar>
-  );
-}
-
-function Sidebar() {
-  const pathname = usePathname();
-  return (
-    <aside className="sticky top-24 hidden h-fit w-52 shrink-0 lg:block">
-      <nav className="flex flex-col gap-1">
-        {navItems.map((item) => {
-          const Icon = iconMap[item.icon as keyof typeof iconMap];
-          const active =
-            pathname === item.href ||
-            (item.href !== "/app" && pathname.startsWith(item.href));
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition-colors ${active ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
-            >
-              <Icon className="size-4" />
-              {item.label}
-              {item.label === "Messages" && (
-                <Badge
-                  variant={active ? "secondary" : "default"}
-                  className="ml-auto size-5 justify-center rounded-full p-0 text-[10px]"
-                >
-                  2
-                </Badge>
-              )}
-            </Link>
-          );
-        })}
-      </nav>
-      <Separator className="my-6" />
-      <div className="rounded-2xl bg-muted/60 p-4">
-        <p className="text-sm font-medium">
-          Make your corner of the internet kinder.
-        </p>
-        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-          Follow people who make you think, laugh, and look closer.
-        </p>
-        <Button
-          size="sm"
-          className="mt-4 w-full"
-          render={<Link href="/friends" />}
-        >
-          Find people
-        </Button>
-      </div>
-    </aside>
-  );
-}
-function RightRail() {
-  return (
-    <aside className="sticky top-24 hidden h-fit w-64 shrink-0 xl:block">
-      <Card className="border-0 bg-muted/50 shadow-none">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold">People to follow</h2>
-            <Link href="/friends" className="text-xs text-primary">
-              See all
-            </Link>
-          </div>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          {suggestions.map((user) => (
-            <div key={user.handle} className="flex items-center gap-3">
-              <UserAvatar user={user} size="size-9" />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{user.name}</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  @{user.handle}
-                </p>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => toast.success(`Following @${user.handle}`)}
-              >
-                Follow
-              </Button>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-      <Card className="mt-4 border-0 bg-primary text-primary-foreground shadow-none">
-        <CardContent className="p-5">
-          <p className="text-xs font-medium uppercase tracking-widest opacity-70">
-            Trending today
-          </p>
-          <p className="mt-3 text-xl font-semibold">#slowinternet</p>
-          <p className="mt-1 text-sm opacity-80">
-            A little less noise. A little more signal.
-          </p>
-        </CardContent>
-      </Card>
-    </aside>
-  );
-}
-
-function AppShell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <div className="mx-auto flex max-w-7xl gap-8 px-4 py-8 lg:px-8">
-        <Sidebar />
-        <main className="min-w-0 flex-1">{children}</main>
-        <RightRail />
-      </div>
-      <nav className="fixed inset-x-0 bottom-0 z-30 flex justify-around border-t bg-background/95 p-2 backdrop-blur lg:hidden">
-        {navItems.slice(0, 5).map((item) => {
-          const Icon = iconMap[item.icon as keyof typeof iconMap];
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex flex-col items-center gap-1 p-2 text-[10px] text-muted-foreground"
-            >
-              <Icon className="size-5" />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
-    </div>
-  );
-}
-
-function CreatePost({ onCreate }: { onCreate: (body: string) => void }) {
-  const [body, setBody] = useState("");
-  const [open, setOpen] = useState(false);
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          <Card className="cursor-pointer transition-shadow hover:shadow-md" />
-        }
-      >
-        <CardContent className="flex items-center gap-3 p-4">
-          <UserAvatar user={currentUser} />
-          <div className="flex-1 rounded-full bg-muted px-4 py-2.5 text-sm text-muted-foreground">
-            Share something with your circle...
-          </div>
-          <Button size="icon" variant="ghost" aria-label="Add image">
-            <ImagePlus />
-          </Button>
-        </CardContent>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Create a post</DialogTitle>
-          <DialogDescription>
-            Share a thought, link, or moment with your circle.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex gap-3">
-          <UserAvatar user={currentUser} />
-          <Textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            placeholder="What is on your mind?"
-            className="min-h-32"
-            maxLength={500}
-          />
-        </div>
-        <p className="text-right text-xs text-muted-foreground">
-          {body.length}/500
-        </p>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
-          </Button>
-          <Button
-            disabled={!body.trim()}
-            onClick={() => {
-              onCreate(body);
-              setBody("");
-              setOpen(false);
-              toast.success("Post published");
-            }}
-          >
-            Publish post
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-function PostCard({
-  post,
-  onChange,
-}: {
-  post: Post;
-  onChange: (post: Post) => void;
-}) {
-  return (
-    <Card>
-      <CardHeader className="flex-row items-start justify-between space-y-0 pb-3">
-        <div className="flex items-center gap-3">
-          <Link href={`/account/${post.author.handle}`}>
-            <UserAvatar user={post.author} />
-          </Link>
-          <div>
-            <Link
-              href={`/account/${post.author.handle}`}
-              className="text-sm font-semibold hover:underline"
-            >
-              {post.author.name}
-            </Link>
-            <p className="text-xs text-muted-foreground">
-              @{post.author.handle} · {post.time}
-            </p>
-          </div>
-        </div>
-        <Button variant="ghost" size="icon" aria-label="More post actions">
-          <MoreHorizontal />
-        </Button>
-      </CardHeader>
-      <CardContent className="pb-3">
-        <p className="text-[15px] leading-7">{post.body}</p>
-        {post.image && (
-          <img
-            src={post.image}
-            alt="City skyline shared in a post"
-            className="mt-4 max-h-96 w-full rounded-xl object-cover"
-          />
-        )}
-      </CardContent>
-      <CardFooter className="gap-1 border-t pt-3">
-        <Button
-          variant="ghost"
-          size="sm"
-          className={post.liked ? "text-destructive" : ""}
-          onClick={() =>
-            onChange({
-              ...post,
-              liked: !post.liked,
-              likes: post.likes + (post.liked ? -1 : 1),
-            })
-          }
-        >
-          <Heart
-            fill={post.liked ? "currentColor" : "none"}
-            data-icon="inline-start"
-          />
-          {formatNumber(post.likes)}
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => toast.info("Comments are ready to explore")}
-        >
-          <MessageCircle data-icon="inline-start" />
-          {post.comments}
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => toast.success("Share link copied")}
-        >
-          <Share2 data-icon="inline-start" />
-          {post.shares}
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="ml-auto"
-          aria-label="Save post"
-          onClick={() => onChange({ ...post, saved: !post.saved })}
-        >
-          <Bookmark fill={post.saved ? "currentColor" : "none"} />
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-}
+import UserAvatar from "./user-avatar";
+import PostCard from "./post-card";
+import { AppShell } from "./app-shell";
+import Brand from "./brand";
 
 export function LandingPage() {
   return (
@@ -384,10 +64,12 @@ export function LandingPage() {
       <header className="mx-auto flex max-w-7xl items-center justify-between px-4 py-6 lg:px-8">
         <Brand />
         <div className="flex items-center gap-2">
-          <Button variant="ghost" render={<Link href="/login" />}>
-            Sign in
-          </Button>
-          <Button render={<Link href="/register" />}>Get started</Button>
+          <Link href="/login">
+            <Button variant="ghost">Sign in</Button>
+          </Link>
+          <Link href="/register">
+            <Button>Get started</Button>
+          </Link>
         </div>
       </header>
       <main>
@@ -404,12 +86,14 @@ export function LandingPage() {
               curious minds, and have conversations that stay human.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button size="lg" render={<Link href="/register" />}>
-                Create your account
-              </Button>
-              <Button size="lg" variant="outline" render={<Link href="/app" />}>
-                Explore the feed <ChevronDown data-icon="inline-end" />
-              </Button>
+              <Link href="/register">
+                <Button size="lg">Create your account</Button>
+              </Link>
+              <Link href="/app">
+                <Button size="lg" variant="outline">
+                  Explore the feed <ChevronDown data-icon="inline-end" />
+                </Button>
+              </Link>
             </div>
             <div className="mt-8 flex items-center gap-3 text-sm text-muted-foreground">
               <div className="flex -space-x-2">
@@ -783,7 +467,7 @@ export function MessagesPage() {
             Private conversations with your people.
           </p>
         </div>
-        <Card className="grid min-h-[560px] overflow-hidden md:grid-cols-[240px_1fr]">
+        <Card className="grid min-h-560px overflow-hidden md:grid-cols-[240px_1fr]">
           <div className="border-r">
             <div className="border-b p-4">
               <Input placeholder="Search conversations" />

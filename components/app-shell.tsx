@@ -1,6 +1,28 @@
+import { navItems } from "@/lib/social-data";
 import Navbar from "./navbar";
+import RightRail from "./right-rail";
+import Sidebar from "./side-bar";
+
+import {
+  Bookmark,
+  Home,
+  MessageCircle,
+  Settings,
+  UserRound,
+  Users,
+} from "lucide-react";
+import Link from "next/link";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const iconMap = {
+    home: Home,
+    users: Users,
+    message: MessageCircle,
+    user: UserRound,
+    bookmark: Bookmark,
+    settings: Settings,
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />

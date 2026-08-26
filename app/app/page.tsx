@@ -1,9 +1,13 @@
+"use client";
+
 import { AppShell } from "@/components/app-shell";
+import CreatePost from "@/components/create-post";
+import PostCard from "@/components/post-card";
 import { Badge } from "@/components/ui/badge";
-import { Post } from "@/lib/social-data";
+import { currentUser, Post, posts } from "@/lib/social-data";
 import { useState } from "react";
 
-export function Page() {
+export default function Page() {
   const [feed, setFeed] = useState<Post[]>(posts);
   const [sort, setSort] = useState("For you");
   return (

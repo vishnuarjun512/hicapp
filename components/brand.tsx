@@ -10,7 +10,7 @@ export default function Brand() {
       <span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground">
         <Sparkles className="size-4" />
       </span>
-      <span className="text-lg">kindred</span>
+      <span className="text-lg">Hicapp</span>
     </Link>
   );
 }

@@ -53,9 +53,12 @@ export function MessagesPage() {
           <div className="flex min-w-0 flex-col">
             <div className="flex items-center gap-3 border-b p-4">
               <UserAvatar user={selected.user} />
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="font-medium">{selected.user.name}</p>
-                <p className="text-xs text-muted-foreground">Active now</p>
+                <div className="flex items-center gap-2">
+                  <div className="bg-green-400 h-2 w-2 rounded-full" />
+                  <p className="text-xs text-muted-foreground">Active now</p>
+                </div>
               </div>
             </div>
             <div className="flex flex-1 flex-col justify-end gap-3 p-6">

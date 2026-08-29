@@ -1,2 +1,5 @@
-import { AuthPage } from '@/components/social-app'
-export default function Page() { return <AuthPage /> }
+import { AuthPage } from "../register/components/auth-page";
+
+export default function Page() {
+  return <AuthPage />;
+}

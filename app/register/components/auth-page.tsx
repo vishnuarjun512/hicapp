@@ -1,3 +1,4 @@
+"use client";
 import Brand from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

@@ -7,6 +7,9 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 export function AuthPage({ register = false }: { register?: boolean }) {
+  const authSubmit = () => {
+    toast.success(register ? "Account created" : "Welcome back");
+  };
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="hidden bg-primary p-12 text-primary-foreground lg:flex lg:flex-col lg:justify-between">
@@ -34,14 +37,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
               ? "Find your people and start sharing."
               : "Sign in to see what your circle is up to."}
           </p>
-          <form
-            className="mt-8 flex flex-col gap-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              toast.success(register ? "Account created" : "Welcome back");
-              window.location.href = "/app";
-            }}
-          >
+          <form className="mt-8 flex flex-col gap-4" onSubmit={authSubmit}>
             <div className="grid gap-2">
               <Label htmlFor="auth-email">Email</Label>
               <Input

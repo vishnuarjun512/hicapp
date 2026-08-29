@@ -13,7 +13,6 @@ import {
   Bookmark,
   Heart,
   Home,
-  MenuIcon,
   MessageCircle,
   Search,
   Settings,
@@ -24,6 +23,12 @@ import { Input } from "./ui/input";
 import UserAvatar from "./user-avatar";
 import { Badge } from "./ui/badge";
 import Brand from "./brand";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 
 export default function Navbar() {
   const iconMap = {
@@ -120,15 +125,49 @@ export default function Navbar() {
           )}
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" aria-label="Messages">
-            <MessageCircle />
-            <Badge className="-ml-3 -mt-5 size-4 justify-center rounded-full p-0 text-[10px]">
-              2
-            </Badge>
-          </Button>
-          <Button variant="ghost" size="icon" aria-label="Notifications">
-            <Heart />
-          </Button>
+          <Link href="/messages">
+            <Button variant="ghost" size="icon" aria-label="Messages">
+              <MessageCircle />
+              <Badge className="-ml-3 -mt-5 size-4 justify-center rounded-full p-0 text-[10px]">
+                2
+              </Badge>
+            </Button>
+          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Notifications"
+                />
+              }
+            >
+              <Heart />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-80 mt-5" align="end">
+              <DropdownMenuItem className="flex items-center gap-3">
+                <UserAvatar user={users[0]} size="size-8" />
+                <div>
+                  <p className="text-sm">
+                    <span className="font-semibold">{users[0].name}</span> liked
+                    your post.
+                  </p>
+                  <p className="text-xs text-muted-foreground">2 hours ago</p>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="flex items-center gap-3">
+                <UserAvatar user={users[1]} size="size-8" />
+                <div>
+                  <p className="text-sm">
+                    <span className="font-semibold">{users[1].name}</span> liked
+                    your post.
+                  </p>
+                  <p className="text-xs text-muted-foreground">5 hours ago</p>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Link href="/profile">
             <UserAvatar user={currentUser} />
           </Link>

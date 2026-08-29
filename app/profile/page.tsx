@@ -1,2 +1,5 @@
-import { ProfilePage } from '@/components/social-app'
-export default function Page() { return <ProfilePage /> }
+import ProfilePage from "./components/profile-page";
+
+export default function Page() {
+  return <ProfilePage />;
+}

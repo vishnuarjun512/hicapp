@@ -1,2 +1,5 @@
-import { SavedPage } from '@/components/social-app'
-export default function Page() { return <SavedPage /> }
+import { SavedPage } from "./components/saved-page";
+
+export default function Page() {
+  return <SavedPage />;
+}

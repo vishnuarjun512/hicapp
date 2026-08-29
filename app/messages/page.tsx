@@ -1,2 +1,5 @@
-import { MessagesPage } from '@/components/social-app'
-export default function Page() { return <MessagesPage /> }
+import { MessagesPage } from "./components/messages-page";
+
+export default function Page() {
+  return <MessagesPage />;
+}

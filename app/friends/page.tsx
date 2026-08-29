@@ -1,2 +1,5 @@
-import { FriendsPage } from '@/components/social-app'
-export default function Page() { return <FriendsPage /> }
+import FriendsPage from "@/app/friends/components/friends-page";
+
+export default function Page() {
+  return <FriendsPage />;
+}

@@ -6,8 +6,7 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import Link from "next/link";
-import UserAvatar from "./user-avatar";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Bookmark,
   Heart,
@@ -16,6 +15,7 @@ import {
   Share2,
 } from "lucide-react";
 import { toast } from "sonner";
+import UserAvatar from "@/components/user-avatar";
 
 export default function PostCard({
   post,

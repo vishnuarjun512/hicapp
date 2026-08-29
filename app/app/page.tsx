@@ -1,11 +1,12 @@
 "use client";
 
 import { AppShell } from "@/components/app-shell";
-import CreatePost from "@/components/create-post";
-import PostCard from "@/components/post-card";
+import CreatePost from "@/app/app/components/create-post";
+
 import { Badge } from "@/components/ui/badge";
 import { currentUser, Post, posts } from "@/lib/social-data";
 import { useState } from "react";
+import PostCard from "./components/post-card";
 
 export default function Page() {
   const [feed, setFeed] = useState<Post[]>(posts);
@@ -56,7 +57,7 @@ export default function Page() {
             <PostCard
               key={post.id}
               post={post}
-              onChange={(next) =>
+              onChange={(next: Post) =>
                 setFeed(feed.map((item) => (item.id === next.id ? next : item)))
               }
             />

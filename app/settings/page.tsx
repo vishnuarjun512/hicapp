@@ -1,2 +1,5 @@
-import { SettingsPage } from '@/components/social-app'
-export default function Page() { return <SettingsPage /> }
+import { SettingsPage } from "./components/settings-page";
+
+export default function Page() {
+  return <SettingsPage />;
+}

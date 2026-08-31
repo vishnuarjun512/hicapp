@@ -10,7 +10,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { validateForm } from "@/lib/utils";
 import { useAuthStore } from "@/lib/stores/auth-store";
-import axios from "axios";
 
 export function AuthPage({ register = false }: { register?: boolean }) {
   const router = useRouter();

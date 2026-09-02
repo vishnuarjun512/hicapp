@@ -1,115 +1,136 @@
-export type User = {
-  name: string;
-  handle: string;
-  avatar: string;
-  bio: string;
-  followers: number;
-  following: number;
-  friends: number;
-  posts: number;
-  verified?: boolean;
-};
-export type Post = {
-  id: number;
-  author: User;
-  body: string;
-  image?: string;
-  likes: number;
-  comments: number;
-  shares: number;
-  time: string;
-  liked?: boolean;
-  saved?: boolean;
-  topic?: string;
-};
+import { User } from "./stores/auth-store";
 
 export const currentUser: User = {
+  id: "current-user-id",
+  email: "maya.chen@example.com",
   name: "Maya Chen",
   handle: "mayachen",
-  avatar: "https://i.pravatar.cc/150?img=47",
+  profilePicUrl: "https://i.pravatar.cc/150?img=12",
   bio: "Designing calm, useful things for the internet. Coffee, cameras, and curious conversations.",
-  followers: 1284,
-  following: 438,
-  friends: 86,
-  posts: 142,
+  followersCount: 1284,
+  followingCount: 438,
+  postsCount: 142,
   verified: true,
 };
 export const users: User[] = [
   {
+    id: "sjdkfad",
+    email: "jordan.lee@example.com",
     name: "Jordan Lee",
     handle: "jordanlee",
-    avatar: "https://i.pravatar.cc/150?img=12",
+    profilePicUrl: "https://i.pravatar.cc/150?img=47",
     bio: "Product builder and weekend photographer.",
-    followers: 892,
-    following: 312,
-    friends: 34,
-    posts: 42,
+    followersCount: 892,
+    followingCount: 312,
+    postsCount: 42,
+    verified: true,
   },
   {
+    id: "kldjfsa",
+    email: "nora.williams@example.com",
     name: "Nora Williams",
     handle: "noraw",
-    avatar: "https://i.pravatar.cc/150?img=32",
+    profilePicUrl: "https://i.pravatar.cc/150?img=32",
     bio: "Writer, reader, and recovering perfectionist.",
-    followers: 2100,
-    following: 184,
-    friends: 62,
-    posts: 23,
+    followersCount: 2100,
+    followingCount: 184,
+    postsCount: 23,
+    verified: true,
   },
   {
+    id: "asdkfja",
+    email: "sam.rivera@example.com",
     name: "Sam Rivera",
     handle: "samrivera",
-    avatar: "https://i.pravatar.cc/150?img=68",
+    profilePicUrl: "https://i.pravatar.cc/150?img=68",
     bio: "Making tiny tools with big feelings.",
-    followers: 654,
-    following: 520,
-    friends: 28,
-    posts: 32,
+    followersCount: 654,
+    followingCount: 520,
+    postsCount: 32,
+    verified: true,
   },
   {
+    id: "asdkfja",
+    email: "theo.martins@example.com",
     name: "Theo Martins",
     handle: "theom",
-    avatar: "https://i.pravatar.cc/150?img=53",
+    profilePicUrl: "https://i.pravatar.cc/150?img=53",
     bio: "Film, food, and finding the long way home.",
-    followers: 1100,
-    following: 290,
-    friends: 41,
-    posts: 32,
+    followersCount: 1100,
+    followingCount: 290,
+    postsCount: 32,
+    verified: true,
   },
 ];
+
+export type Post = {
+  id: string;
+
+  author: User;
+
+  body: string;
+
+  images: string[];
+
+  likes: number;
+  comments: number;
+  shares: number;
+
+  liked: boolean;
+  saved: boolean;
+
+  time: string;
+
+  visibility: "public" | "friends" | "only-me";
+
+  location?: string | null;
+
+  pinned?: boolean;
+};
+
 export const posts: Post[] = [
   {
-    id: 1,
+    id: "post-1",
     author: currentUser,
     body: "A quiet reminder: the best ideas usually arrive after you stop trying to force them. Make a little space today.",
+    images: [],
     likes: 284,
     comments: 32,
     shares: 8,
     time: "12 min",
     liked: true,
-    topic: "Mindful work",
+    saved: false,
+    visibility: "public",
   },
   {
-    id: 2,
+    id: "post-2",
     author: users[0],
     body: "Spent the morning walking through the city with no destination. Turns out that is still a pretty good way to find one.",
-    image:
+    images: [
       "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
+    ],
     likes: 184,
     comments: 18,
     shares: 12,
     time: "1 hr",
-    topic: "City walks",
+    liked: false,
+    saved: false,
+    visibility: "public",
   },
   {
-    id: 3,
+    id: "post-3",
     author: users[1],
     body: "What is a small ritual that makes your day feel more like yours? Mine is reading ten pages before opening any apps.",
+    images: [],
     likes: 96,
     comments: 41,
     shares: 4,
     time: "3 hr",
-    saved: true,
-    topic: "Daily rituals",
+    liked: false,
+    saved: false,
+    visibility: "public",
   },
 ];
 export const suggestions = users.slice(1, 4);
@@ -134,6 +155,14 @@ export const conversations = [
     unread: 0,
   },
 ];
+
+export type Comment = {
+  id: string;
+  author: User;
+  body: string;
+  time: string;
+};
+
 export const navItems = [
   { label: "Home", href: "/app", icon: "home" },
   { label: "Friends", href: "/friends", icon: "users" },

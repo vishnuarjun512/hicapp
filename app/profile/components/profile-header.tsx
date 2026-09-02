@@ -2,13 +2,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import UserAvatar from "@/components/user-avatar";
-import { formatNumber, User } from "@/lib/social-data";
+import { formatNumber } from "@/lib/social-data";
 import { Check, Share2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import EditProfile from "./edit-profile";
-import { useAuthStore } from "@/lib/stores/auth-store";
+
 import ProfileVerificationStatus from "./profile-verification";
+import { User } from "@/lib/stores/auth-store";
 
 export default function ProfileHeader({
   user,
@@ -18,7 +19,6 @@ export default function ProfileHeader({
   own?: boolean;
 }) {
   const [following, setFollowing] = useState(false);
-  const authUser = useAuthStore((state) => state.user);
 
   return (
     <div className="space-y-4">
@@ -47,8 +47,8 @@ export default function ProfileHeader({
 
                     toast.success(
                       following
-                        ? `Unfollowed @${authUser?.handle}`
-                        : `Following @${authUser?.handle}`,
+                        ? `Unfollowed @${user?.handle}`
+                        : `Following @${user?.handle}`,
                     );
                   }}
                 >
@@ -61,7 +61,7 @@ export default function ProfileHeader({
           <div className="mt-4">
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-semibold">
-                {authUser?.name || "Unnamed user"}
+                {user?.name || "Unnamed user"}
               </h1>
 
               {user.verified && (
@@ -72,28 +72,24 @@ export default function ProfileHeader({
             </div>
 
             <p className="text-sm text-muted-foreground">
-              {authUser?.handle ? `@${authUser.handle}` : "No username"}
+              {user?.handle ? `@${user.handle}` : "No username"}
             </p>
 
-            {authUser?.bio && (
-              <p className="mt-3 max-w-xl leading-7">{authUser.bio}</p>
-            )}
+            {user?.bio && <p className="mt-3 max-w-xl leading-7">{user.bio}</p>}
 
             <div className="mt-5 flex flex-wrap gap-5 text-sm">
               <span>
-                <strong>{formatNumber(user.posts)}</strong> posts
+                <strong>{formatNumber(user?.postsCount ?? 0)}</strong> posts
               </span>
 
               <span>
-                <strong>{formatNumber(user.followers)}</strong> followers
+                <strong>{formatNumber(user?.followersCount ?? 0)}</strong>{" "}
+                followers
               </span>
 
               <span>
-                <strong>{formatNumber(user.following)}</strong> following
-              </span>
-
-              <span>
-                <strong>{formatNumber(user.friends)}</strong> friends
+                <strong>{formatNumber(user?.followingCount ?? 0)}</strong>{" "}
+                following
               </span>
             </div>
           </div>
@@ -102,9 +98,9 @@ export default function ProfileHeader({
 
       {own && (
         <ProfileVerificationStatus
-          name={authUser?.name}
-          handle={authUser?.handle}
-          bio={authUser?.bio}
+          name={user?.name}
+          handle={user?.handle}
+          bio={user?.bio}
         />
       )}
     </div>

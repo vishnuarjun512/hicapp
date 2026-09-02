@@ -1,3 +1,4 @@
+"use client";
 import { navItems } from "@/lib/social-data";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

@@ -3,23 +3,21 @@ import PostCard from "@/app/app/components/post-card";
 import { AppShell } from "@/components/app-shell";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UserList from "@/components/user-list";
-import {
-  currentUser,
-  posts,
-  suggestions,
-  User,
-  users,
-} from "@/lib/social-data";
+import { posts, suggestions, users } from "@/lib/social-data";
 import { toast } from "sonner";
 import ProfileHeader from "./profile-header";
+import { useAuthStore, User } from "@/lib/stores/auth-store";
+import { useEffect, useState } from "react";
 
-export default function ProfilePage({
-  user = currentUser,
-  own = true,
-}: {
-  user?: User;
-  own?: boolean;
-}) {
+export default function ProfilePage({ user }: { user: User }) {
+  const [own, setOwn] = useState(true);
+  const { user: currentUser } = useAuthStore();
+  useEffect(() => {
+    // Check if the user is the current user
+    if (currentUser) {
+      setOwn(user.handle === currentUser.handle);
+    }
+  }, [currentUser]);
   return (
     <AppShell>
       <div className="mx-auto max-w-3xl">

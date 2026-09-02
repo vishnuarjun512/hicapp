@@ -4,9 +4,16 @@ import { AppShell } from "@/components/app-shell";
 import CreatePost from "@/app/app/components/create-post";
 
 import { Badge } from "@/components/ui/badge";
-import { currentUser, Post, posts } from "@/lib/social-data";
+import { Post, posts } from "@/lib/social-data";
 import { useState } from "react";
 import PostCard from "./components/post-card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function Page() {
   const [feed, setFeed] = useState<Post[]>(posts);
@@ -26,40 +33,46 @@ export default function Page() {
               Here is what is happening in your world.
             </p>
           </div>
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            className="hidden rounded-lg border bg-background px-3 py-2 text-sm sm:block"
-          >
-            <option>For you</option>
-            <option>Following</option>
-            <option>Latest</option>
-          </select>
+          <Select>
+            <SelectTrigger>
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="for-you">For you</SelectItem>
+              <SelectItem value="following">Following</SelectItem>
+              <SelectItem value="latest">Latest</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex flex-col gap-4">
           <CreatePost
-            onCreate={(body) =>
-              setFeed([
-                {
-                  id: Date.now(),
-                  author: currentUser,
-                  body,
-                  likes: 0,
-                  comments: 0,
-                  shares: 0,
-                  time: "now",
-                },
-                ...feed,
-              ])
-            }
+            onCreate={(newPost) => {
+              setFeed((currentFeed) => [newPost, ...currentFeed]);
+            }}
           />
           {feed.map((post) => (
             <PostCard
               key={post.id}
               post={post}
-              onChange={(next: Post) =>
-                setFeed(feed.map((item) => (item.id === next.id ? next : item)))
-              }
+              onChange={(updatedPost) => {
+                setFeed((currentFeed) =>
+                  currentFeed.map((item) =>
+                    item.id === updatedPost.id ? updatedPost : item,
+                  ),
+                );
+              }}
+              onDelete={(deletedPost) => {
+                setFeed((currentFeed) =>
+                  currentFeed.filter((item) => item.id !== deletedPost.id),
+                );
+              }}
+              onEdit={(updatedPost) => {
+                setFeed((currentFeed) =>
+                  currentFeed.map((item) =>
+                    item.id === updatedPost.id ? updatedPost : item,
+                  ),
+                );
+              }}
             />
           ))}
         </div>

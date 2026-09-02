@@ -1,3 +1,4 @@
+"use client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { suggestions } from "@/lib/social-data";
 import Link from "next/link";

@@ -1,3 +1,4 @@
+"use client";
 import { currentUser, navItems, users } from "@/lib/social-data";
 import { useMemo, useState } from "react";
 import {

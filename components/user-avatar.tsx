@@ -1,4 +1,4 @@
-import { User } from "@/lib/social-data";
+import { User } from "@/lib/stores/auth-store";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 export default function UserAvatar({
@@ -10,7 +10,7 @@ export default function UserAvatar({
 }) {
   return (
     <Avatar className={size}>
-      <AvatarImage src={user.avatar} alt={`${user.name} avatar`} />
+      <AvatarImage src={user.profilePic} alt={`${user.name} avatar`} />
       <AvatarFallback>
         {user.name
           .split(" ")

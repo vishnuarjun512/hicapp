@@ -3,13 +3,17 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-type User = {
+export type User = {
   id: string;
   name: string;
   email: string;
-  profilePic?: string;
+  profilePicUrl?: string;
   handle: string;
+  verified?: boolean;
   bio: string;
+  postsCount: number;
+  followersCount: number;
+  followingCount: number;
 };
 
 type AuthState = {

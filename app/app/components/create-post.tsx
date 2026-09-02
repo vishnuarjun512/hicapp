@@ -175,24 +175,29 @@ export default function CreatePost({ onCreate }: CreatePostProps) {
       return;
     }
 
+    if (!user) {
+      return;
+    }
+
     try {
-      const formData = new FormData();
+      const payload = {
+        body: content,
+        visibility,
+        location: location.trim() || null,
+      };
 
-      formData.append("content", content);
-      formData.append("visibility", visibility);
+      console.log("Sending:", payload);
 
-      if (location.trim()) {
-        formData.append("location", location);
-      }
-
-      images.forEach((image) => {
-        formData.append("images", image.file);
-      });
-
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/post`, {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/post/${user.id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        },
+      );
 
       const data = await response.json();
 
@@ -202,7 +207,6 @@ export default function CreatePost({ onCreate }: CreatePostProps) {
 
       const newPost = data.post;
 
-      // Give the complete backend post to the parent
       onCreate?.(newPost);
 
       toast.success("Post created!");

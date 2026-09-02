@@ -12,6 +12,7 @@ export const currentUser: User = {
   postsCount: 142,
   verified: true,
 };
+
 export const users: User[] = [
   {
     id: "sjdkfad",
@@ -171,6 +172,7 @@ export const navItems = [
   { label: "Saved", href: "/profile/saved", icon: "bookmark" },
   { label: "Settings", href: "/settings", icon: "settings" },
 ];
+
 export const formatNumber = (value: number) =>
   value > 999 ? `${(value / 1000).toFixed(1)}k` : value.toString();
 export const clonePosts = () =>

@@ -32,7 +32,7 @@ export const EditProfilePreview: React.FC<EditProfilePreviewInterface> = ({
       </div>
 
       <div className="flex items-start gap-3">
-        <Avatar className="size-12">
+        <Avatar className="size-17">
           {profileImage && !removeProfileImage ? (
             <AvatarImage src={profileImage} alt="" />
           ) : null}

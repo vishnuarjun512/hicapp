@@ -2,6 +2,10 @@ import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: 'Kindred — A calmer social network',
@@ -40,7 +44,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-background">
+    <html lang="en" className={cn("bg-background", "font-sans", geist.variable)}>
       <body className="antialiased">
         {children}
         <Toaster />

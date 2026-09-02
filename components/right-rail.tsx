@@ -21,14 +21,27 @@ export default function RightRail() {
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {suggestions.map((user) => (
-            <div key={user.handle} className="flex items-center gap-3">
-              <UserAvatar user={user} size="size-9" />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{user.name}</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  @{user.handle}
-                </p>
+            <div
+              key={user.handle}
+              className="flex items-center justify-between gap-3"
+            >
+              <div
+                key={user.handle}
+                className="flex items-center justify-between gap-3"
+              >
+                <Link href={`/account/${user.id}`}>
+                  <UserAvatar user={user} size="size-9" />
+                </Link>
+                <Link href={`/account/${user.id}`}>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{user.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      @{user.handle}
+                    </p>
+                  </div>
+                </Link>
               </div>
+
               <Button
                 size="sm"
                 variant="outline"

@@ -13,5 +13,6 @@ export default function Page() {
       </div>
     );
   }
+
   return <ProfilePage user={user} />;
 }

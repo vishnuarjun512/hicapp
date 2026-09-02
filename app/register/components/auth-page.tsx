@@ -76,7 +76,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
 
       setLoading(false);
 
-      router.push("/");
+      router.push("/app");
     } catch (error) {
       console.log("Failed Register - ", error);
     }
@@ -139,7 +139,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
               <Input
                 id="auth-password"
                 type="password"
-                placeholder="At least 8 characters"
+                placeholder="At least 3 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 aria-invalid={!!errors.password}

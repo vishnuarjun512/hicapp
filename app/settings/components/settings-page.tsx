@@ -5,9 +5,22 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useAuthStore } from "@/lib/stores/auth-store";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export function SettingsPage() {
+  const { user } = useAuthStore();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    if (user?.email) {
+      setEmail(user.email);
+    }
+  }, [user]);
+
   return (
     <AppShell>
       <div className="mx-auto max-w-2xl">
@@ -30,16 +43,19 @@ export function SettingsPage() {
                 <Label htmlFor="email">Email address</Label>
                 <Input
                   id="email"
-                  defaultValue="maya@example.com"
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">New password</Label>
                 <Input
                   id="password"
-                  placeholder="Leave blank to keep current"
                   type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Leave blank to keep current"
                 />
               </div>
               <Button

@@ -7,13 +7,14 @@ export type User = {
   id: string;
   name: string;
   email: string;
-  profilePicUrl?: string;
+  profile_pic_url?: string;
   handle: string;
   verified?: boolean;
   bio: string;
   postsCount: number;
   followersCount: number;
   followingCount: number;
+  isPrivate?: boolean;
 };
 
 type AuthState = {

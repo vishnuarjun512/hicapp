@@ -51,7 +51,7 @@ export default function EditProfile({ trigger }: EditProfileProps) {
     setName(user.name ?? "");
     setHandle(user.handle ?? "");
     setBio(user.bio ?? "");
-    setProfileImage(user.profilePicUrl ?? null);
+    setProfileImage(user.profile_pic_url ?? null);
     setSelectedImage(null);
     setRemoveProfileImage(false);
   }, [open, user]);
@@ -177,7 +177,15 @@ export default function EditProfile({ trigger }: EditProfileProps) {
       const url = `${process.env.NEXT_PUBLIC_BASE_URL}/user/edit-profile/${user.id}`;
       const response = await fetch(url, {
         method: "PUT",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.get("name"),
+          handle: formData.get("handle"),
+          bio: formData.get("bio"),
+          verified: name == "" && handle == "" ? false : true,
+        }),
       });
 
       // Safe JSON parsing to prevent unhandled crash on non-200 non-JSON server responses
@@ -201,9 +209,10 @@ export default function EditProfile({ trigger }: EditProfileProps) {
           name: name.trim(),
           handle: handle.trim(),
           bio: bio.trim(),
-          profilePicUrl: removeProfileImage
+          profile_pic_url: removeProfileImage
             ? undefined
-            : (profileImage ?? user.profilePicUrl),
+            : (profileImage ?? user.profile_pic_url),
+          verified: name == "" && handle == "" ? false : true,
         });
       }
 

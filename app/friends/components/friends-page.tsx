@@ -2,18 +2,43 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-import { friendRequests, suggestions, users } from "@/lib/social-data";
+import { friendRequests, users } from "@/lib/social-data";
 import UserAvatar from "@/components/user-avatar";
 import { Card, CardContent } from "@/components/ui/card";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 import UserList from "@/components/user-list";
+import { useAuthStore } from "@/lib/stores/auth-store";
+import { useDataStore } from "@/lib/stores/data-store";
 
 export default function FriendsPage() {
+  const { user } = useAuthStore();
+  const { suggestions, setSuggestions } = useDataStore();
   const [requests, setRequests] = useState(friendRequests);
+
+  useEffect(() => {
+    const getSuggested = async () => {
+      if (!user || suggestions.length > 0) return;
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+        const url = `${baseUrl}/friends/${user.id}`;
+
+        const res = await fetch(url);
+        const data = await res.json();
+        console.log("Response Data -> ", data);
+        setSuggestions(data.suggested);
+      } catch (error) {
+        console.log("Get Friends Page Error = > ", error);
+      }
+    };
+    if (user) {
+      getSuggested();
+    }
+  }, [user]);
+
   return (
     <AppShell>
       <div className="mx-auto max-w-3xl">
@@ -72,7 +97,7 @@ export default function FriendsPage() {
             <UserList users={users.slice(0, 3)} />
           </TabsContent>
           <TabsContent value="suggestions" className="mt-6">
-            <UserList users={suggestions} />
+            {suggestions && <UserList users={suggestions} />}
           </TabsContent>
         </Tabs>
       </div>

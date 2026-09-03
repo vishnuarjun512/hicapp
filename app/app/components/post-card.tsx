@@ -70,22 +70,13 @@ import {
 
 import UserAvatar from "@/components/user-avatar";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { formatPostTime } from "@/lib/utils";
 
 type PostCardProps = {
   post: Post;
 
-  /**
-   * Called whenever the post changes.
-   *
-   * Parent should update the feed with the returned post.
-   */
   onChange: (post: Post) => void;
 
-  /**
-   * Optional callbacks for backend operations.
-   *
-   * You can connect these later to your API.
-   */
   onDelete?: (post: Post) => void;
   onEdit?: (post: Post) => void;
   onComment?: (post: Post, comment: string) => void;
@@ -110,7 +101,7 @@ export default function PostCard({
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const [editBody, setEditBody] = useState(post.body);
+  const [editBody, setEditBody] = useState(post.body ?? "");
 
   const [visibility, setVisibility] = useState(
     // Supports posts that already have visibility.
@@ -212,12 +203,22 @@ export default function PostCard({
     toast.success("Post updated");
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
+    const url = `${process.env.NEXT_PUBLIC_BASE_URL}/post/${post.id}`;
+    const res = await fetch(url, {
+      method: "DELETE",
+    });
+    const { message } = await res.json();
+
+    if (!res.ok) {
+      toast.error("Something went wrong!");
+    }
+
     onDelete?.(post);
 
     setDeleteDialogOpen(false);
 
-    toast.success("Post deleted");
+    toast.success(message);
   };
 
   const handleCopyLink = async () => {
@@ -326,12 +327,11 @@ export default function PostCard({
 
                 <span>·</span>
 
-                <span>{post.created_at}</span>
+                <span>{formatPostTime(post.created_at)}</span>
 
                 {visibility && (
                   <>
                     <span>·</span>
-
                     <span className="capitalize">{visibility}</span>
                   </>
                 )}
@@ -648,7 +648,7 @@ export default function PostCard({
               </span>
             </div>
 
-            <div className="space-y-2">
+            <div className="flex flex-col gap-1">
               <label className="text-sm font-medium">Visibility</label>
 
               <Select

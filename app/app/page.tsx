@@ -4,8 +4,8 @@ import { AppShell } from "@/components/app-shell";
 import CreatePost from "@/app/app/components/create-post";
 
 import { Badge } from "@/components/ui/badge";
-import { Post, posts } from "@/lib/social-data";
-import { useState } from "react";
+import { Post, posts as fakePosts } from "@/lib/social-data";
+import { useEffect, useState } from "react";
 import PostCard from "./components/post-card";
 import {
   Select,
@@ -14,10 +14,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuthStore } from "@/lib/stores/auth-store";
 
 export default function Page() {
-  const [feed, setFeed] = useState<Post[]>(posts);
+  const [feed, setFeed] = useState<Post[]>(fakePosts);
   const [sort, setSort] = useState("For you");
+
   return (
     <AppShell>
       <div className="mx-auto max-w-2xl">

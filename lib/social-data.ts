@@ -73,14 +73,14 @@ export type Post = {
 
   images: string[];
 
-  likes: number;
-  comments: number;
-  shares: number;
+  likes?: number;
+  comments?: number;
+  shares?: number;
 
-  liked: boolean;
-  saved: boolean;
+  liked?: boolean;
+  saved?: boolean;
 
-  time: string;
+  created_at: string;
 
   visibility: "public" | "friends" | "only-me";
 
@@ -98,7 +98,7 @@ export const posts: Post[] = [
     likes: 284,
     comments: 32,
     shares: 8,
-    time: "12 min",
+    created_at: "12 min",
     liked: true,
     saved: false,
     visibility: "public",
@@ -115,7 +115,7 @@ export const posts: Post[] = [
     likes: 184,
     comments: 18,
     shares: 12,
-    time: "1 hr",
+    created_at: "1 hr",
     liked: false,
     saved: false,
     visibility: "public",
@@ -128,7 +128,7 @@ export const posts: Post[] = [
     likes: 96,
     comments: 41,
     shares: 4,
-    time: "3 hr",
+    created_at: "3 hr",
     liked: false,
     saved: false,
     visibility: "public",

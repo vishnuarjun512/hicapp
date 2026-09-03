@@ -139,7 +139,7 @@ export default function PostCard({
     onChange({
       ...post,
       liked: !post.liked,
-      likes: post.likes + (post.liked ? -1 : 1),
+      likes: post.likes ? post.likes + (post.liked ? -1 : 1) : 0,
     });
   };
 
@@ -151,6 +151,7 @@ export default function PostCard({
 
     toast.success(post.saved ? "Removed from saved" : "Post saved");
   };
+
   const authUser = useAuthStore((state) => state.user);
 
   const handleSubmitComment = () => {
@@ -174,7 +175,7 @@ export default function PostCard({
 
     onChange({
       ...post,
-      comments: post.comments + 1,
+      comments: post?.comments ? post.comments + 1 : 0,
     });
 
     onComment?.(post, trimmedComment);
@@ -325,7 +326,7 @@ export default function PostCard({
 
                 <span>·</span>
 
-                <span>{post.time}</span>
+                <span>{post.created_at}</span>
 
                 {visibility && (
                   <>
@@ -418,29 +419,30 @@ export default function PostCard({
           {/* ------------------------------------------------ */}
           {/* IMAGES                                           */}
           {/* ------------------------------------------------ */}
+          {images.length > 0 && (
+            <Carousel className="mt-4 w-full">
+              <CarouselContent>
+                {post.images.map((image, index) => (
+                  <CarouselItem key={`${image}-${index}`}>
+                    <div className="flex h-150 w-full items-center justify-center overflow-hidden rounded-xl bg-muted">
+                      <img
+                        src={image}
+                        alt={`Post image ${index + 1}`}
+                        className="max-h-full max-w-full object-center"
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
 
-          <Carousel className="mt-4 w-full">
-            <CarouselContent>
-              {post.images.map((image, index) => (
-                <CarouselItem key={`${image}-${index}`}>
-                  <div className="flex h-150 w-full items-center justify-center overflow-hidden rounded-xl bg-muted">
-                    <img
-                      src={image}
-                      alt={`Post image ${index + 1}`}
-                      className="max-h-full max-w-full object-center"
-                    />
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-
-            {post.images.length > 1 && (
-              <>
-                <CarouselPrevious className="left-3" />
-                <CarouselNext className="right-3" />
-              </>
-            )}
-          </Carousel>
+              {post.images.length > 1 && (
+                <>
+                  <CarouselPrevious className="left-3" />
+                  <CarouselNext className="right-3" />
+                </>
+              )}
+            </Carousel>
+          )}
         </CardContent>
 
         {/* -------------------------------------------------- */}
@@ -462,7 +464,7 @@ export default function PostCard({
                 data-icon="inline-start"
               />
 
-              <span>{formatNumber(post.likes)}</span>
+              <span>{formatNumber(post?.likes ? post.likes : 0)}</span>
             </Button>
 
             {/* COMMENT */}
@@ -474,7 +476,7 @@ export default function PostCard({
             >
               <MessageCircle data-icon="inline-start" />
 
-              <span>{formatNumber(post.comments)}</span>
+              <span>{formatNumber(post?.comments ? post.comments : 0)}</span>
             </Button>
 
             {/* SHARE */}
@@ -482,7 +484,7 @@ export default function PostCard({
             <Button variant="ghost" size="sm" onClick={handleShare}>
               <Share2 data-icon="inline-start" />
 
-              <span>{formatNumber(post.shares)}</span>
+              <span>{formatNumber(post?.shares ? post.shares : 0)}</span>
             </Button>
 
             {/* SAVE */}

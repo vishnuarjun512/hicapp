@@ -14,7 +14,7 @@ export type User = {
   postsCount: number;
   followersCount: number;
   followingCount: number;
-  isPrivate?: boolean;
+  is_private?: boolean;
 };
 
 type AuthState = {

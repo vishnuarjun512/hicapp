@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export function SettingsPage() {
-  const { user } = useAuthStore();
+  const { user, setUser } = useAuthStore();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,6 +20,49 @@ export function SettingsPage() {
       setEmail(user.email);
     }
   }, [user]);
+
+  const handleIsPrivate = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const is_private = e.target.checked;
+
+    if (!user) return;
+    // Update Zustand
+    setUser({
+      ...user,
+      is_private,
+    });
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/user/toggleIsPrivate/${user.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            is_private,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update privacy");
+      }
+
+      toast.success(data.message);
+    } catch (error) {
+      // Update Zustand
+      setUser({
+        ...user,
+        is_private: !is_private,
+      });
+
+      toast.error("Account Privacy Changed Failed");
+      console.error("Privacy update failed:", error);
+    }
+  };
 
   return (
     <AppShell>
@@ -80,7 +123,7 @@ export function SettingsPage() {
                     Get updates about activity.
                   </span>
                 </span>
-                <input
+                <Input
                   type="checkbox"
                   defaultChecked
                   className="size-4 accent-primary"
@@ -96,7 +139,12 @@ export function SettingsPage() {
                     Only friends can see your posts.
                   </span>
                 </span>
-                <input type="checkbox" className="size-4 accent-primary" />
+                <Input
+                  type="checkbox"
+                  className="size-4 accent-primary"
+                  checked={user?.is_private ?? false}
+                  onChange={handleIsPrivate}
+                />
               </label>
             </CardContent>
           </Card>

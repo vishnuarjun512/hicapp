@@ -1,11 +1,9 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-
-import { friendRequests, users } from "@/lib/social-data";
 import UserAvatar from "@/components/user-avatar";
 import { Card, CardContent } from "@/components/ui/card";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { AppShell } from "@/components/app-shell";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -16,12 +14,20 @@ import { useDataStore } from "@/lib/stores/data-store";
 
 export default function FriendsPage() {
   const { user } = useAuthStore();
-  const { suggestions, setSuggestions } = useDataStore();
-  const [requests, setRequests] = useState(friendRequests);
+  const {
+    suggestions,
+    setSuggestions,
+    followers,
+    followRequests,
+    setFollowers,
+    following,
+    setFollowing,
+    setFollowRequests,
+  } = useDataStore();
 
   useEffect(() => {
     const getSuggested = async () => {
-      if (!user || suggestions.length > 0) return;
+      if (!user) return;
       try {
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
         const url = `${baseUrl}/friends/${user.id}`;
@@ -30,6 +36,9 @@ export default function FriendsPage() {
         const data = await res.json();
         console.log("Response Data -> ", data);
         setSuggestions(data.suggested);
+        setFollowRequests(data.followRequests);
+        setFollowers(data.followers);
+        setFollowing(data.following);
       } catch (error) {
         console.log("Get Friends Page Error = > ", error);
       }
@@ -51,50 +60,59 @@ export default function FriendsPage() {
         <Tabs defaultValue="requests">
           <TabsList>
             <TabsTrigger value="requests">
-              Requests <Badge className="ml-2">{requests.length}</Badge>
+              Requests{" "}
+              <Badge className="ml-2">
+                {followRequests?.length ? followRequests.length : 0}
+              </Badge>
             </TabsTrigger>
-            <TabsTrigger value="friends">Friends</TabsTrigger>
+            <TabsTrigger value="following">Following</TabsTrigger>
             <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
           </TabsList>
           <TabsContent value="requests" className="mt-6 flex flex-col gap-3">
-            {requests.map((user) => (
-              <Card key={user.handle}>
-                <CardContent className="flex items-center gap-3 p-4">
-                  <UserAvatar user={user} />
-                  <div className="flex-1">
-                    <p className="font-medium">{user.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      @{user.handle} · 8 mutual friends
-                    </p>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      setRequests(
-                        requests.filter((item) => item.handle !== user.handle),
-                      );
-                      toast.success(`You and ${user.name} are now friends`);
-                    }}
-                  >
-                    Accept
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      setRequests(
-                        requests.filter((item) => item.handle !== user.handle),
-                      )
-                    }
-                  >
-                    Ignore
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+            {followRequests &&
+              followRequests.length > 0 &&
+              followRequests?.map((user) => (
+                <Card key={user.handle}>
+                  <CardContent className="flex items-center gap-3 p-4">
+                    <UserAvatar user={user} />
+                    <div className="flex-1">
+                      <p className="font-medium">{user.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        @{user.handle} · 8 mutual friends
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setFollowRequests(
+                          followRequests.filter(
+                            (item) => item.handle !== user.handle,
+                          ),
+                        );
+                        toast.success(`You and ${user.name} are now friends`);
+                      }}
+                    >
+                      Accept
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        setFollowRequests(
+                          followRequests.filter(
+                            (item) => item.handle !== user.handle,
+                          ),
+                        )
+                      }
+                    >
+                      Ignore
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
           </TabsContent>
-          <TabsContent value="friends" className="mt-6">
-            <UserList users={users.slice(0, 3)} />
+          <TabsContent value="following" className="mt-6">
+            <UserList users={following} />
           </TabsContent>
           <TabsContent value="suggestions" className="mt-6">
             {suggestions && <UserList users={suggestions} />}

@@ -14,11 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAuthStore } from "@/lib/stores/auth-store";
 
 export default function Page() {
   const [feed, setFeed] = useState<Post[]>(fakePosts);
-  const [sort, setSort] = useState("For you");
 
   return (
     <AppShell>

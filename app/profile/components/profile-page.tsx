@@ -4,13 +4,16 @@ import PostCard from "@/app/app/components/post-card";
 import { AppShell } from "@/components/app-shell";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UserList from "@/components/user-list";
-import { Post, suggestions, users } from "@/lib/social-data";
+import { Post, users } from "@/lib/social-data";
 import ProfileHeader from "./profile-header";
-import { useAuthStore } from "@/lib/stores/auth-store";
+import { useAuthStore, User } from "@/lib/stores/auth-store";
 import { useEffect, useState } from "react";
+import { useDataStore } from "@/lib/stores/data-store";
 
-export default function ProfilePage() {
-  const { user } = useAuthStore();
+export default function ProfilePage({ user }: { user: User }) {
+  const { user: authUser } = useAuthStore();
+
+  const { followers, following } = useDataStore();
 
   const [posts, setPosts] = useState<Post[]>([]);
 
@@ -86,11 +89,11 @@ export default function ProfilePage() {
           </TabsContent>
 
           <TabsContent value="followers" className="mt-4">
-            <UserList users={users} />
+            <UserList users={followers} />
           </TabsContent>
 
           <TabsContent value="following" className="mt-4">
-            <UserList users={suggestions} />
+            <UserList users={following} />
           </TabsContent>
 
           <TabsContent value="friends" className="mt-4">

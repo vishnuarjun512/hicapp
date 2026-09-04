@@ -1,7 +1,6 @@
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export const followUser = async (sender_id: string, receiver_id: string) => {
-  console.log(sender_id, receiver_id);
   const res = await fetch(`${BASE_URL}/users/${receiver_id}/follow`, {
     method: "POST",
     headers: {

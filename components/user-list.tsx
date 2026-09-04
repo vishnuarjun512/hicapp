@@ -20,7 +20,12 @@ import {
 import Link from "next/link";
 import { followUser, unfollowUser } from "@/app/(apiCalls)/followApis";
 
-export default function UserList({ users: list }: { users: User[] }) {
+type UserListProps = {
+  users: User[];
+  onRemove?: (user: User) => void;
+};
+
+export default function UserList({ users: list, onRemove }: UserListProps) {
   const { user } = useAuthStore();
   const {
     following,
@@ -73,6 +78,9 @@ export default function UserList({ users: list }: { users: User[] }) {
       const data = await unfollowUser(user.id, userToUnfollow.id);
 
       toast.success("Success: " + data.message);
+
+      // Tell the parent that this user was removed
+      onRemove?.(userToUnfollow);
 
       setFollowing(
         following.filter((follow) => follow.id != userToUnfollow.id),

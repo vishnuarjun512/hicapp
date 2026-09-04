@@ -109,7 +109,14 @@ export default function ProfilePage({ user }: { user: User }) {
           </TabsContent>
 
           <TabsContent value="following" className="mt-4">
-            <UserList users={pageFollowing} />
+            <UserList
+              users={pageFollowing}
+              onRemove={(removedUser) => {
+                setPageFollowing((currentUsers) =>
+                  currentUsers.filter((user) => user.id !== removedUser.id),
+                );
+              }}
+            />
           </TabsContent>
         </Tabs>
       </div>

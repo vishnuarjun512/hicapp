@@ -136,24 +136,21 @@ export const posts: Post[] = [
 ];
 export const suggestions = users.slice(1, 4);
 export const friendRequests = [users[2], users[3]];
+
 export const conversations = [
   {
-    user: users[0],
-    preview: "That sounds perfect. See you Saturday!",
-    time: "2m",
-    unread: 2,
-  },
-  {
+    id: "conversation-1",
     user: users[1],
-    preview: "Sending over the notes now.",
-    time: "1h",
-    unread: 0,
+    preview: "Hey, are you free tomorrow?",
+    unread: 2,
+    isOnline: true,
   },
   {
+    id: "conversation-2",
     user: users[2],
-    preview: "Have you tried the new photo walk?",
-    time: "4h",
+    preview: "That sounds good!",
     unread: 0,
+    isOnline: false,
   },
 ];
 
@@ -167,7 +164,7 @@ export type Comment = {
 export const navItems = [
   { label: "Home", href: "/app", icon: "home" },
   { label: "Friends", href: "/friends", icon: "users" },
-  { label: "Messages", href: "/messages", icon: "message" },
+  { label: "Messages", href: "/message", icon: "message" },
   { label: "Profile", href: "/profile", icon: "user" },
   { label: "Saved", href: "/profile/saved", icon: "bookmark" },
   { label: "Settings", href: "/settings", icon: "settings" },

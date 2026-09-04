@@ -26,7 +26,7 @@ type UserListProps = {
 };
 
 export default function UserList({ users: list, onRemove }: UserListProps) {
-  const { user } = useAuthStore();
+  const { user: LoggedUser } = useAuthStore();
   const {
     following,
     setFollowing,
@@ -39,13 +39,13 @@ export default function UserList({ users: list, onRemove }: UserListProps) {
   const [userToUnfollow, setUserToUnfollow] = useState<User | null>(null);
 
   const handleFollow = async (userToFollow: User) => {
-    if (!user) {
+    if (!LoggedUser) {
       toast.error("You must be logged in to follow users.");
       return;
     }
 
     try {
-      const data = await followUser(user.id, userToFollow.id);
+      const data = await followUser(LoggedUser.id, userToFollow.id);
 
       toast.success("Success: " + data.message);
 
@@ -69,13 +69,13 @@ export default function UserList({ users: list, onRemove }: UserListProps) {
   };
 
   const handleUnfollow = async (userToUnfollow: User) => {
-    if (!user) {
+    if (!LoggedUser) {
       toast.error("You must be logged in to unfollow users.");
       return;
     }
 
     try {
-      const data = await unfollowUser(user.id, userToUnfollow.id);
+      const data = await unfollowUser(LoggedUser.id, userToUnfollow.id);
 
       toast.success("Success: " + data.message);
 
@@ -97,10 +97,10 @@ export default function UserList({ users: list, onRemove }: UserListProps) {
   };
 
   const handleCancelRequest = async (cancelRequested: User) => {
-    if (!user) return;
+    if (!LoggedUser) return;
     try {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-      const url = `${baseUrl}/followrequest/${user.id}/reject`;
+      const url = `${baseUrl}/followrequest/${LoggedUser.id}/reject`;
 
       const res = await fetch(url, {
         method: "POST",
@@ -163,25 +163,27 @@ export default function UserList({ users: list, onRemove }: UserListProps) {
                       <span> {` ·  ${user.bio}`}</span>
                     </p>
                   </div>
-                  <Button
-                    variant={isRequestSent ? "destructive" : "outline"}
-                    size="sm"
-                    onClick={() => {
-                      if (isFollowing) {
-                        setUserToUnfollow(user);
-                      } else if (!isRequestSent) {
-                        handleFollow(user);
-                      } else if (isRequestSent) {
-                        handleCancelRequest(user);
-                      }
-                    }}
-                  >
-                    {isFollowing
-                      ? "Unfollow"
-                      : isRequestSent
-                        ? "Cancel Request"
-                        : "Follow"}
-                  </Button>
+                  {LoggedUser && user.id != LoggedUser.id && (
+                    <Button
+                      variant={isRequestSent ? "destructive" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        if (isFollowing) {
+                          setUserToUnfollow(user);
+                        } else if (!isRequestSent) {
+                          handleFollow(user);
+                        } else if (isRequestSent) {
+                          handleCancelRequest(user);
+                        }
+                      }}
+                    >
+                      {isFollowing
+                        ? "Unfollow"
+                        : isRequestSent
+                          ? "Cancel Request"
+                          : "Follow"}
+                    </Button>
+                  )}
 
                   <Button
                     variant="ghost"

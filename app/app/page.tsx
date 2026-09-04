@@ -14,9 +14,47 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuthStore } from "@/lib/stores/auth-store";
+import { useDataStore } from "@/lib/stores/data-store";
 
 export default function Page() {
   const [feed, setFeed] = useState<Post[]>(fakePosts);
+
+  const { user } = useAuthStore();
+
+  const { setPosts, setFollowers, setFollowing } = useDataStore();
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const getProfileData = async () => {
+      try {
+        const url = `${process.env.NEXT_PUBLIC_BASE_URL}/profile/${user.id}`;
+
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to fetch posts");
+        }
+
+        setPosts(data.suggested);
+
+        setFollowers(data.followers);
+        setFollowing(data.following);
+      } catch (error) {
+        console.log("Profile Fetch Request Failed -> ", error);
+      }
+    };
+
+    getProfileData();
+  }, []);
 
   return (
     <AppShell>

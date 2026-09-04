@@ -14,6 +14,7 @@ import { useDataStore } from "@/lib/stores/data-store";
 
 export default function FriendsPage() {
   const { user } = useAuthStore();
+
   const {
     suggestions,
     setSuggestions,
@@ -23,10 +24,12 @@ export default function FriendsPage() {
     following,
     setFollowing,
     setFollowRequests,
+    setSentFollowRequests,
+    sentFollowRequests,
   } = useDataStore();
 
   useEffect(() => {
-    const getSuggested = async () => {
+    const getFriends = async () => {
       if (!user) return;
       try {
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
@@ -34,17 +37,18 @@ export default function FriendsPage() {
 
         const res = await fetch(url);
         const data = await res.json();
-        console.log("Response Data -> ", data);
+
         setSuggestions(data.suggested);
         setFollowRequests(data.followRequests);
         setFollowers(data.followers);
         setFollowing(data.following);
+        setSentFollowRequests(data.sentFollowRequests);
       } catch (error) {
         console.log("Get Friends Page Error = > ", error);
       }
     };
     if (user) {
-      getSuggested();
+      getFriends();
     }
   }, [user]);
 
@@ -52,7 +56,7 @@ export default function FriendsPage() {
     if (!user) return;
     try {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-      const url = `${baseUrl}/follow-requests/${sender.id}/accept`;
+      const url = `${baseUrl}/followrequest/${sender.id}/accept`;
 
       const res = await fetch(url, {
         method: "POST",
@@ -65,9 +69,13 @@ export default function FriendsPage() {
       if (!res.ok) {
         throw new Error("Failed to Accept Request");
       }
+
+      // Remove from Follow Requests
       setFollowRequests(
         followRequests.filter((item) => item.handle !== sender.handle),
       );
+
+      // Add to Followers
       setFollowers([...followers, sender]);
       toast.success("Success: " + data.message);
     } catch (error) {
@@ -80,7 +88,7 @@ export default function FriendsPage() {
     if (!user) return;
     try {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-      const url = `${baseUrl}/follow-requests/${sender.id}/reject`;
+      const url = `${baseUrl}/followrequest/${sender.id}/reject`;
 
       const res = await fetch(url, {
         method: "POST",
@@ -93,9 +101,11 @@ export default function FriendsPage() {
       if (!res.ok) {
         throw new Error("Failed to Reject Request");
       }
+
       setFollowRequests(
         followRequests.filter((item) => item.handle !== sender.handle),
       );
+
       toast.success("Success: " + data.message);
       console.log("Response Data -> ", data);
     } catch (error) {
@@ -123,6 +133,7 @@ export default function FriendsPage() {
             </TabsTrigger>
             <TabsTrigger value="following">Following</TabsTrigger>
             <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
+            <TabsTrigger value="sentFollowRequests">Pending</TabsTrigger>
           </TabsList>
           <TabsContent value="requests" className="mt-6 flex flex-col gap-3">
             {followRequests &&
@@ -156,6 +167,9 @@ export default function FriendsPage() {
           </TabsContent>
           <TabsContent value="suggestions" className="mt-6">
             {suggestions && <UserList users={suggestions} />}
+          </TabsContent>
+          <TabsContent value="sentFollowRequests" className="mt-6">
+            {sentFollowRequests && <UserList users={sentFollowRequests} />}
           </TabsContent>
         </Tabs>
       </div>

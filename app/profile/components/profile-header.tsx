@@ -9,8 +9,9 @@ import { toast } from "sonner";
 import EditProfile from "./edit-profile";
 
 import ProfileVerificationStatus from "./profile-verification";
-import { User } from "@/lib/stores/auth-store";
+import { useAuthStore, User } from "@/lib/stores/auth-store";
 import { useDataStore } from "@/lib/stores/data-store";
+import { followUser, unfollowUser } from "@/app/(apiCalls)/followApis";
 
 export default function ProfileHeader({
   user,
@@ -26,13 +27,51 @@ export default function ProfileHeader({
   own?: boolean;
 }) {
   const [following, setFollowing] = useState(false);
-
+  const { user: LoggedUser } = useAuthStore();
   const { following: authFollowing } = useDataStore();
   useEffect(() => {
     if (authFollowing.some((follow) => follow.id == user.id)) {
       setFollowing(true);
     }
   }, [authFollowing]);
+
+  const handleFollow = async () => {
+    if (!LoggedUser) {
+      toast.error("You must be logged in to follow users.");
+      return;
+    }
+
+    try {
+      const data = await followUser(LoggedUser.id, user.id);
+
+      toast.success("Success: " + data.message);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to follow user.",
+      );
+
+      console.log(error);
+    }
+  };
+
+  const handleUnfollow = async () => {
+    if (!LoggedUser) {
+      toast.error("You must be logged in to unfollow users.");
+      return;
+    }
+
+    try {
+      const data = await unfollowUser(LoggedUser.id, user.id);
+
+      toast.success("Success: " + data.message);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to unfollow user.",
+      );
+
+      console.log(error);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -56,15 +95,9 @@ export default function ProfileHeader({
                 <EditProfile />
               ) : (
                 <Button
-                  onClick={() => {
-                    setFollowing(!following);
-
-                    toast.success(
-                      following
-                        ? `Unfollowed @${user?.handle}`
-                        : `Following @${user?.handle}`,
-                    );
-                  }}
+                  onClick={() =>
+                    following ? handleUnfollow() : handleFollow()
+                  }
                 >
                   {following ? "Unfollow" : "Follow"}
                 </Button>

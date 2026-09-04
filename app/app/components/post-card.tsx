@@ -298,14 +298,14 @@ export default function PostCard({
 
         <CardHeader className="pb-3">
           <div className="flex items-start gap-3">
-            <Link href={`/account/${post.author.handle}`} className="shrink-0">
+            <Link href={`/account/${post.author.id}`} className="shrink-0">
               <UserAvatar user={post.author} />
             </Link>
 
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <Link
-                  href={`/account/${post.author.handle}`}
+                  href={`/account/${post.author.id}`}
                   className="truncate text-sm font-semibold hover:underline"
                 >
                   {post.author.name}

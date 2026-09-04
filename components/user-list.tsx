@@ -18,10 +18,18 @@ import {
   AlertDialogTitle,
 } from "./ui/alert-dialog";
 import Link from "next/link";
+import { followUser, unfollowUser } from "@/app/(apiCalls)/followApis";
 
 export default function UserList({ users: list }: { users: User[] }) {
   const { user } = useAuthStore();
-  const { following } = useDataStore();
+  const {
+    following,
+    setFollowing,
+    sentFollowRequests,
+    setSentFollowRequests,
+    suggestions,
+    setSuggestions,
+  } = useDataStore();
 
   const [userToUnfollow, setUserToUnfollow] = useState<User | null>(null);
 
@@ -32,25 +40,25 @@ export default function UserList({ users: list }: { users: User[] }) {
     }
 
     try {
-      // Implement the follow logic here, e.g., make an API call to follow the user
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/users/${userToFollow.id}/follow`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ sender_id: user.id }),
-        },
-      );
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error("Failed to follow user");
-      }
+      const data = await followUser(user.id, userToFollow.id);
 
       toast.success("Success: " + data.message);
+
+      // Remove from Suggestions
+      setSuggestions(
+        suggestions.filter((singleUser) => singleUser.id != userToFollow.id),
+      );
+
+      if (data.request) {
+        setSentFollowRequests([...sentFollowRequests, userToFollow]);
+      } else {
+        setFollowing([...following, userToFollow]);
+      }
     } catch (error) {
-      toast.error("Failed to follow user. Please try again.");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to follow user.",
+      );
+
       console.log(error);
     }
   };
@@ -60,30 +68,60 @@ export default function UserList({ users: list }: { users: User[] }) {
       toast.error("You must be logged in to unfollow users.");
       return;
     }
+
     try {
-      // Implement the unfollow logic here, e.g., make an API call to unfollow the user
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/users/${userToUnfollow.id}/unfollow`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ follower_id: user.id }),
-        },
+      const data = await unfollowUser(user.id, userToUnfollow.id);
+
+      toast.success("Success: " + data.message);
+
+      setFollowing(
+        following.filter((follow) => follow.id != userToUnfollow.id),
       );
 
-      if (!res.ok) {
-        throw new Error("Failed to unfollow user");
-      }
-      toast.success("Success: Unfollowed " + userToUnfollow.name);
+      setSuggestions([...suggestions, userToUnfollow]);
     } catch (error) {
-      toast.error("Failed to unfollow user. Please try again.");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to unfollow user.",
+      );
+
       console.log(error);
     }
   };
 
-  useEffect(() => {}, [user]);
+  const handleCancelRequest = async (cancelRequested: User) => {
+    if (!user) return;
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+      const url = `${baseUrl}/followrequest/${user.id}/reject`;
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ receiver_id: cancelRequested.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error("Failed to Reject Request");
+      }
+
+      // Remove from sent requests
+      setSentFollowRequests(
+        sentFollowRequests.filter(
+          (request) => request.id !== cancelRequested.id,
+        ),
+      );
+
+      // Add back to suggestions
+      setSuggestions([...suggestions, cancelRequested]);
+      toast.success("Success: " + data.message);
+      console.log("Response Data -> ", data);
+    } catch (error) {
+      toast.error("Failed to reject request. Please try again.");
+      console.log("Reject Follow Request Error = > ", error);
+    }
+  };
 
   return (
     <>
@@ -93,6 +131,10 @@ export default function UserList({ users: list }: { users: User[] }) {
           list.map((user) => {
             const isFollowing = following.some(
               (followedUser) => followedUser.id === user.id,
+            );
+
+            const isRequestSent = sentFollowRequests.some(
+              (requestedUser) => requestedUser.id === user.id,
             );
             return (
               <Card key={user.handle}>
@@ -114,18 +156,25 @@ export default function UserList({ users: list }: { users: User[] }) {
                     </p>
                   </div>
                   <Button
-                    variant="outline"
+                    variant={isRequestSent ? "destructive" : "outline"}
                     size="sm"
                     onClick={() => {
                       if (isFollowing) {
                         setUserToUnfollow(user);
-                      } else {
+                      } else if (!isRequestSent) {
                         handleFollow(user);
+                      } else if (isRequestSent) {
+                        handleCancelRequest(user);
                       }
                     }}
                   >
-                    {isFollowing ? "Unfollow" : "Follow"}
+                    {isFollowing
+                      ? "Unfollow"
+                      : isRequestSent
+                        ? "Cancel Request"
+                        : "Follow"}
                   </Button>
+
                   <Button
                     variant="ghost"
                     size="icon"

@@ -4,21 +4,35 @@ import { Card, CardContent } from "@/components/ui/card";
 import UserAvatar from "@/components/user-avatar";
 import { formatNumber } from "@/lib/social-data";
 import { Check, Share2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import EditProfile from "./edit-profile";
 
 import ProfileVerificationStatus from "./profile-verification";
 import { User } from "@/lib/stores/auth-store";
+import { useDataStore } from "@/lib/stores/data-store";
 
 export default function ProfileHeader({
   user,
+  postCount = 0,
+  followersCount = 0,
+  followingCount = 0,
   own = false,
 }: {
   user: User;
+  postCount: number;
+  followersCount: number;
+  followingCount: number;
   own?: boolean;
 }) {
   const [following, setFollowing] = useState(false);
+
+  const { following: authFollowing } = useDataStore();
+  useEffect(() => {
+    if (authFollowing.some((follow) => follow.id == user.id)) {
+      setFollowing(true);
+    }
+  }, [authFollowing]);
 
   return (
     <div className="space-y-4">
@@ -52,7 +66,7 @@ export default function ProfileHeader({
                     );
                   }}
                 >
-                  {following ? "Following" : "Follow"}
+                  {following ? "Unfollow" : "Follow"}
                 </Button>
               )}
             </div>
@@ -79,17 +93,15 @@ export default function ProfileHeader({
 
             <div className="mt-5 flex flex-wrap gap-5 text-sm">
               <span>
-                <strong>{formatNumber(user?.postsCount ?? 0)}</strong> posts
+                <strong>{formatNumber(postCount)}</strong> posts
               </span>
 
               <span>
-                <strong>{formatNumber(user?.followersCount ?? 0)}</strong>{" "}
-                followers
+                <strong>{formatNumber(followersCount)}</strong> followers
               </span>
 
               <span>
-                <strong>{formatNumber(user?.followingCount ?? 0)}</strong>{" "}
-                following
+                <strong>{formatNumber(followingCount)}</strong> following
               </span>
             </div>
           </div>

@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 import UserList from "@/components/user-list";
-import { useAuthStore } from "@/lib/stores/auth-store";
+import { useAuthStore, User } from "@/lib/stores/auth-store";
 import { useDataStore } from "@/lib/stores/data-store";
 
 export default function FriendsPage() {
@@ -48,6 +48,62 @@ export default function FriendsPage() {
     }
   }, [user]);
 
+  const handleAccept = async (sender: User) => {
+    if (!user) return;
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+      const url = `${baseUrl}/follow-requests/${sender.id}/accept`;
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ receiver_id: user.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error("Failed to Accept Request");
+      }
+      setFollowRequests(
+        followRequests.filter((item) => item.handle !== sender.handle),
+      );
+      setFollowers([...followers, sender]);
+      toast.success("Success: " + data.message);
+    } catch (error) {
+      toast.error("Failed to accept request. Please try again.");
+      console.log("Accept Follow Request Error = > ", error);
+    }
+  };
+
+  const rejectRequest = async (sender: User) => {
+    if (!user) return;
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+      const url = `${baseUrl}/follow-requests/${sender.id}/reject`;
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ receiver_id: user.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error("Failed to Reject Request");
+      }
+      setFollowRequests(
+        followRequests.filter((item) => item.handle !== sender.handle),
+      );
+      toast.success("Success: " + data.message);
+      console.log("Response Data -> ", data);
+    } catch (error) {
+      toast.error("Failed to reject request. Please try again.");
+      console.log("Reject Follow Request Error = > ", error);
+    }
+  };
+
   return (
     <AppShell>
       <div className="mx-auto max-w-3xl">
@@ -81,31 +137,15 @@ export default function FriendsPage() {
                         @{user.handle} · 8 mutual friends
                       </p>
                     </div>
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        setFollowRequests(
-                          followRequests.filter(
-                            (item) => item.handle !== user.handle,
-                          ),
-                        );
-                        toast.success(`You and ${user.name} are now friends`);
-                      }}
-                    >
+                    <Button size="sm" onClick={() => handleAccept(user)}>
                       Accept
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() =>
-                        setFollowRequests(
-                          followRequests.filter(
-                            (item) => item.handle !== user.handle,
-                          ),
-                        )
-                      }
+                      onClick={() => rejectRequest(user)}
                     >
-                      Ignore
+                      Reject
                     </Button>
                   </CardContent>
                 </Card>

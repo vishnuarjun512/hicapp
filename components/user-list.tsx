@@ -17,6 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./ui/alert-dialog";
+import Link from "next/link";
 
 export default function UserList({ users: list }: { users: User[] }) {
   const { user } = useAuthStore();
@@ -87,44 +88,55 @@ export default function UserList({ users: list }: { users: User[] }) {
   return (
     <>
       <div className="flex flex-col gap-3">
-        {list.map((user) => {
-          const isFollowing = following.some(
-            (followedUser) => followedUser.id === user.id,
-          );
-          return (
-            <Card key={user.handle}>
-              <CardContent className="flex items-center gap-3 p-4">
-                <UserAvatar user={user} />
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium">{user.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    @{user.handle} · {user.bio}
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (isFollowing) {
-                      setUserToUnfollow(user);
-                    } else {
-                      handleFollow(user);
-                    }
-                  }}
-                >
-                  {isFollowing ? "Unfollow" : "Follow"}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`More actions for ${user.name}`}
-                >
-                  <MoreHorizontal />
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {list &&
+          list.length > 0 &&
+          list.map((user) => {
+            const isFollowing = following.some(
+              (followedUser) => followedUser.id === user.id,
+            );
+            return (
+              <Card key={user.handle}>
+                <CardContent className="flex items-center gap-3 p-4">
+                  <Link href={`/account/${user.id}`}>
+                    <UserAvatar user={user} />
+                  </Link>
+
+                  <div className="min-w-0 flex-1">
+                    <Link href={`/account/${user.id}`}>
+                      <p className="font-medium">{user.name}</p>
+                    </Link>
+
+                    <p className="text-sm text-muted-foreground">
+                      <Link href={`/account/${user.id}`}>
+                        <span>@{user.handle}</span>
+                      </Link>
+                      <span> {` ·  ${user.bio}`}</span>
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (isFollowing) {
+                        setUserToUnfollow(user);
+                      } else {
+                        handleFollow(user);
+                      }
+                    }}
+                  >
+                    {isFollowing ? "Unfollow" : "Follow"}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`More actions for ${user.name}`}
+                  >
+                    <MoreHorizontal />
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
       </div>
 
       <AlertDialog

@@ -19,7 +19,7 @@ async function getUserById(id: string) {
 
     const data = await response.json();
 
-    return data.user ?? null;
+    return data.data ?? null;
   } catch (error) {
     console.error("Failed to fetch user:", error);
     return null;

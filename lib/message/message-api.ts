@@ -1,29 +1,95 @@
-import { Message } from "./message";
+import { Conversation, Message } from "./message";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+
+async function parseResponse(response: Response) {
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Something went wrong");
+  }
+
+  return data;
+}
+
+export async function getConversations(
+  userId: string,
+): Promise<Conversation[]> {
+  const response = await fetch(`${BASE_URL}/conversations/${userId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const data = await parseResponse(response);
+
+  return data.conversations;
+}
 
 export async function getConversationMessages(
   conversationId: string,
 ): Promise<Message[]> {
-  // TODO:
-  // GET /conversations/:conversationId/messages
+  const response = await fetch(
+    `${BASE_URL}/conversations/${conversationId}/messages`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
 
-  console.log("TODO: Fetch messages for conversation:", conversationId);
+  const data = await parseResponse(response);
 
-  return [];
+  return data.messages;
+}
+
+export async function createConversation(user_id: string) {
+  const response = await fetch(`${BASE_URL}/conversations`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      user_id,
+    }),
+  });
+
+  const data = await parseResponse(response);
+
+  return data.conversation;
 }
 
 export async function sendMessage(
   conversationId: string,
   content: string,
 ): Promise<Message> {
-  // TODO:
-  // POST /conversations/:conversationId/messages
+  const response = await fetch(
+    `${BASE_URL}/conversations/${conversationId}/messages`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        content,
+      }),
+    },
+  );
 
-  console.log("TODO: Send message:", {
-    conversationId,
-    content,
+  const data = await parseResponse(response);
+
+  return data.message;
+}
+
+export async function markMessageAsRead(messageId: string) {
+  const response = await fetch(`${BASE_URL}/messages/${messageId}/read`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
 
-  throw new Error("sendMessage is not implemented yet");
+  return parseResponse(response);
 }

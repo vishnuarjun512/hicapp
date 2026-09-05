@@ -1,108 +1,124 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+
 import { AppShell } from "@/components/app-shell";
 import { Card } from "@/components/ui/card";
-
 import { useAuthStore } from "@/lib/stores/auth-store";
-import { conversations } from "@/lib/social-data";
+
+import {
+  getConversationMessages,
+  getConversations,
+  sendMessage,
+} from "@/lib/message/message-api";
 
 import { Conversation, Message } from "@/lib/message/message";
-import ConversationList from "./(components)/conversation-list";
 import ChatWindow from "./(components)/chat-window";
-
-const typedConversations = conversations as Conversation[];
-
-const mockMessages: Record<string, Message[]> = {
-  [typedConversations[0]?.id ?? "default"]: [
-    {
-      id: "message-1",
-      conversationId: typedConversations[0]?.id ?? "default",
-      senderId: typedConversations[0]?.user.id ?? "user-1",
-      receiverId: "current-user",
-      content: typedConversations[0]?.preview ?? "",
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: "message-2",
-      conversationId: typedConversations[0]?.id ?? "default",
-      senderId: "current-user",
-      receiverId: typedConversations[0]?.user.id ?? "user-1",
-      content: "I have been thinking about that too. Let's catch up soon.",
-      createdAt: new Date().toISOString(),
-    },
-  ],
-};
+import ConversationList from "./(components)/conversation-list";
 
 export default function MessagesPage() {
   const { user } = useAuthStore();
 
-  /*
-   * IMPORTANT:
-   *
-   * null = no conversation selected
-   * object = conversation currently being viewed
-   */
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
 
-  const [messages, setMessages] =
-    useState<Record<string, Message[]>>(mockMessages);
+  const [messages, setMessages] = useState<Message[]>([]);
 
-  const selectedMessages = useMemo(() => {
+  const [loadingConversations, setLoadingConversations] = useState(true);
+
+  const [loadingMessages, setLoadingMessages] = useState(false);
+
+  /*
+   * --------------------------------
+   * GET CONVERSATIONS
+   * --------------------------------
+   */
+
+  useEffect(() => {
+    const loadConversations = async () => {
+      if (!user) return null;
+      try {
+        setLoadingConversations(true);
+
+        const data = await getConversations(user.id);
+
+        setConversations(data);
+      } catch (error) {
+        console.error("Failed to load conversations:", error);
+      } finally {
+        setLoadingConversations(false);
+      }
+    };
+    loadConversations();
+  }, []);
+
+  /*
+   * --------------------------------
+   * GET MESSAGES
+   * --------------------------------
+   */
+
+  useEffect(() => {
     if (!selectedConversation) {
-      return [];
-    }
-
-    return messages[selectedConversation.id] ?? [];
-  }, [messages, selectedConversation]);
-
-  const handleSelectConversation = (conversation: Conversation) => {
-    setSelectedConversation(conversation);
-
-    /*
-     * TODO:
-     *
-     * Later:
-     *
-     * 1. Fetch conversation history
-     * 2. Mark messages as read
-     * 3. Subscribe to WebSocket events
-     */
-  };
-
-  const handleBackToConversations = () => {
-    setSelectedConversation(null);
-  };
-
-  const handleSendMessage = (content: string) => {
-    if (!selectedConversation || !user) {
+      setMessages([]);
       return;
     }
 
-    const newMessage: Message = {
-      id: crypto.randomUUID(),
-      conversationId: selectedConversation.id,
-      senderId: user.id,
-      receiverId: selectedConversation.user.id,
-      content,
-      createdAt: new Date().toISOString(),
+    const loadMessages = async () => {
+      try {
+        setLoadingMessages(true);
+
+        const data = await getConversationMessages(selectedConversation.id);
+
+        setMessages(data);
+      } catch (error) {
+        console.error("Failed to load messages:", error);
+      } finally {
+        setLoadingMessages(false);
+      }
     };
 
-    /*
-     * For now we're just updating local state.
-     *
-     * TODO:
-     * Replace this with your HTTP/WebSocket message service.
-     */
-    setMessages((currentMessages) => ({
-      ...currentMessages,
+    loadMessages();
+  }, [selectedConversation?.id]);
 
-      [selectedConversation.id]: [
-        ...(currentMessages[selectedConversation.id] ?? []),
-        newMessage,
-      ],
-    }));
+  /*
+   * --------------------------------
+   * SELECT CONVERSATION
+   * --------------------------------
+   */
+
+  const handleSelectConversation = (conversation: Conversation) => {
+    setSelectedConversation(conversation);
+  };
+
+  /*
+   * --------------------------------
+   * SEND MESSAGE
+   * --------------------------------
+   */
+
+  const handleSendMessage = async (content: string) => {
+    if (!selectedConversation) return;
+
+    try {
+      const newMessage = await sendMessage(selectedConversation.id, content);
+
+      setMessages((currentMessages) => [...currentMessages, newMessage]);
+    } catch (error) {
+      console.error("Failed to send message:", error);
+    }
+  };
+
+  /*
+   * --------------------------------
+   * MOBILE BACK
+   * --------------------------------
+   */
+
+  const handleBack = () => {
+    setSelectedConversation(null);
   };
 
   return (
@@ -118,47 +134,25 @@ export default function MessagesPage() {
 
         <Card className="overflow-hidden">
           <div className="grid h-140 md:grid-cols-[240px_1fr]">
-            {/*
-             * CONVERSATIONS
-             *
-             * Mobile:
-             *   visible only when no conversation is selected
-             *
-             * Desktop:
-             *   always visible
-             */}
+            {/* Conversations */}
             <div className={selectedConversation ? "hidden md:block" : "block"}>
               <ConversationList
-                conversations={typedConversations}
+                conversations={conversations}
                 selectedConversation={selectedConversation}
                 onSelectConversation={handleSelectConversation}
               />
             </div>
 
-            {/*
-             * CHAT
-             *
-             * Mobile:
-             *   visible only when conversation is selected
-             *
-             * Desktop:
-             *   always visible
-             */}
+            {/* Chat */}
             <div className={selectedConversation ? "flex" : "hidden md:flex"}>
-              {selectedConversation ? (
+              {selectedConversation && (
                 <ChatWindow
                   conversation={selectedConversation}
-                  messages={selectedMessages}
-                  currentUserId={user?.id ?? "current-user"}
+                  messages={messages}
+                  currentUserId={user?.id ?? ""}
                   onSendMessage={handleSendMessage}
-                  onBack={handleBackToConversations}
+                  onBack={handleBack}
                 />
-              ) : (
-                <div className="relative w-full">
-                  <p className="absolute bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-gray-200 font-semibold">
-                    Select a Conversation to start texting!
-                  </p>
-                </div>
               )}
             </div>
           </div>

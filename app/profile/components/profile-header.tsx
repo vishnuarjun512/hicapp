@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import UserAvatar from "@/components/user-avatar";
 import { formatNumber } from "@/lib/social-data";
-import { Check, Share2 } from "lucide-react";
+import { Check, MessageCircle, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import EditProfile from "./edit-profile";
@@ -12,6 +12,8 @@ import ProfileVerificationStatus from "./profile-verification";
 import { useAuthStore, User } from "@/lib/stores/auth-store";
 import { useDataStore } from "@/lib/stores/data-store";
 import { followUser, unfollowUser } from "@/app/(apiCalls)/followApis";
+import { createConversation } from "@/lib/message/message-api";
+import { useRouter } from "next/navigation";
 
 export default function ProfileHeader({
   user,
@@ -26,6 +28,7 @@ export default function ProfileHeader({
   followingCount: number;
   own?: boolean;
 }) {
+  const router = useRouter();
   const [following, setFollowing] = useState(false);
   const { user: LoggedUser } = useAuthStore();
   const { following: authFollowing } = useDataStore();
@@ -73,6 +76,25 @@ export default function ProfileHeader({
     }
   };
 
+  const handleMessage = async () => {
+    if (!LoggedUser) {
+      toast.error("You must be logged in to text users");
+      return;
+    }
+
+    try {
+      const data = await createConversation(user.id);
+      toast.success("Created Conversation");
+      router.push("/message");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to unfollow user.",
+      );
+
+      console.log(error);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <Card className="overflow-hidden">
@@ -94,13 +116,19 @@ export default function ProfileHeader({
               {own ? (
                 <EditProfile />
               ) : (
-                <Button
-                  onClick={() =>
-                    following ? handleUnfollow() : handleFollow()
-                  }
-                >
-                  {following ? "Unfollow" : "Follow"}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() =>
+                      following ? handleUnfollow() : handleFollow()
+                    }
+                  >
+                    {following ? "Unfollow" : "Follow"}
+                  </Button>
+                  <Button onClick={handleMessage}>
+                    <MessageCircle data-icon="inline-start" />
+                    Message
+                  </Button>
+                </div>
               )}
             </div>
           </div>

@@ -15,11 +15,12 @@ async function parseResponse(response: Response) {
 export async function getConversations(
   userId: string,
 ): Promise<Conversation[]> {
-  const response = await fetch(`${BASE_URL}/conversations/${userId}`, {
+  const response = await fetch(`${BASE_URL}/conversation`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
     },
+    credentials: "include",
   });
 
   const data = await parseResponse(response);
@@ -46,13 +47,14 @@ export async function getConversationMessages(
 }
 
 export async function createConversation(user_id: string) {
-  const response = await fetch(`${BASE_URL}/conversations`, {
+  const response = await fetch(`${BASE_URL}/conversation`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
+    credentials: "include",
     body: JSON.stringify({
-      user_id,
+      otherUserId: user_id,
     }),
   });
 

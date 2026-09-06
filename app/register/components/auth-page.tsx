@@ -55,6 +55,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           email,
           password,

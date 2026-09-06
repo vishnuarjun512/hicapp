@@ -42,7 +42,6 @@ export default function MessagesPage() {
       try {
         setLoadingConversations(true);
         const data = await getConversations(user.id);
-        console.log("Conversations -> ", data);
         setConversations(data);
       } catch (error) {
         console.error("Failed to load conversations:", error);
@@ -69,9 +68,8 @@ export default function MessagesPage() {
     const loadMessages = async () => {
       try {
         setLoadingMessages(true);
-
         const data = await getConversationMessages(selectedConversation.id);
-
+        console.log("Messages ->", data);
         setMessages(data);
       } catch (error) {
         console.error("Failed to load messages:", error);
@@ -81,7 +79,7 @@ export default function MessagesPage() {
     };
 
     loadMessages();
-  }, [selectedConversation?.id]);
+  }, [selectedConversation]);
 
   /*
    * --------------------------------
@@ -104,6 +102,7 @@ export default function MessagesPage() {
 
     try {
       const newMessage = await sendMessage(selectedConversation.id, content);
+      console.log(newMessage);
 
       setMessages((currentMessages) => [...currentMessages, newMessage]);
     } catch (error) {
@@ -124,7 +123,7 @@ export default function MessagesPage() {
   return (
     <AppShell>
       <div className="mx-auto max-w-4xl">
-        <div className="mb-8">
+        <div className="mb-4">
           <h1 className="text-3xl font-semibold tracking-tight">Messages</h1>
 
           <p className="mt-1 text-muted-foreground">
@@ -132,8 +131,8 @@ export default function MessagesPage() {
           </p>
         </div>
 
-        <Card className="overflow-hidden">
-          <div className="grid h-140 md:grid-cols-[240px_1fr]">
+        <Card className="overflow-hidden p-1">
+          <div className="grid h-160 md:grid-cols-[240px_1fr]">
             {/* Conversations */}
             <div className={selectedConversation ? "hidden md:block" : "block"}>
               <ConversationList
@@ -144,14 +143,18 @@ export default function MessagesPage() {
             </div>
 
             {/* Chat */}
-            <div className={selectedConversation ? "flex" : "hidden md:flex"}>
+            <div
+              className={
+                selectedConversation ? "flex min-h-0" : "hidden md:flex "
+              }
+            >
               {selectedConversation && (
                 <ChatWindow
                   conversation={selectedConversation}
                   messages={messages}
                   currentUserId={user?.id ?? ""}
                   onSendMessage={handleSendMessage}
-                  onBack={handleBack}
+                  onBack={() => setSelectedConversation(null)}
                 />
               )}
             </div>

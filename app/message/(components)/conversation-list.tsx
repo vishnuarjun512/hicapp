@@ -20,14 +20,16 @@ export default function ConversationList({
       </div>
 
       <div className="flex flex-1 flex-col overflow-y-auto">
-        {conversations.map((conversation) => (
-          <ConversationItem
-            key={conversation.id}
-            conversation={conversation}
-            selected={selectedConversation?.id === conversation.id}
-            onSelect={onSelectConversation}
-          />
-        ))}
+        {conversations &&
+          conversations.length > 0 &&
+          conversations.map((conversation) => (
+            <ConversationItem
+              key={conversation.id}
+              conversation={conversation}
+              selected={selectedConversation?.id === conversation.id}
+              onSelect={onSelectConversation}
+            />
+          ))}
       </div>
     </div>
   );

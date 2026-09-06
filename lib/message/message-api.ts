@@ -2,19 +2,7 @@ import { Conversation, Message } from "./message";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
-async function parseResponse(response: Response) {
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || "Something went wrong");
-  }
-
-  return data;
-}
-
-export async function getConversations(
-  userId: string,
-): Promise<Conversation[]> {
+export async function getConversations(userId: string) {
   const response = await fetch(`${BASE_URL}/conversation`, {
     method: "GET",
     headers: {
@@ -23,7 +11,7 @@ export async function getConversations(
     credentials: "include",
   });
 
-  const data = await parseResponse(response);
+  const data = await response.json();
 
   return data.conversations;
 }
@@ -31,18 +19,17 @@ export async function getConversations(
 export async function getConversationMessages(
   conversationId: string,
 ): Promise<Message[]> {
-  const response = await fetch(
-    `${BASE_URL}/conversations/${conversationId}/messages`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+  const url = `${BASE_URL}/conversations/${conversationId}/messages`;
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+    credentials: "include",
+  });
 
-  const data = await parseResponse(response);
-
+  const data = await response.json();
   return data.messages;
 }
 
@@ -58,7 +45,7 @@ export async function createConversation(user_id: string) {
     }),
   });
 
-  const data = await parseResponse(response);
+  const data = await response.json();
 
   return data.conversation;
 }
@@ -77,10 +64,11 @@ export async function sendMessage(
       body: JSON.stringify({
         content,
       }),
+      credentials: "include",
     },
   );
 
-  const data = await parseResponse(response);
+  const data = await response.json();
 
   return data.message;
 }
@@ -93,5 +81,5 @@ export async function markMessageAsRead(messageId: string) {
     },
   });
 
-  return parseResponse(response);
+  return await response.json();
 }

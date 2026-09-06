@@ -22,9 +22,9 @@ export default function ChatWindow({
   onBack,
 }: ChatWindowProps) {
   return (
-    <div className="flex min-w-0 flex-1 flex-col">
-      <div className="flex items-center border-b">
-        {/* Mobile back button */}
+    <div className="flex min-h-0 flex-1 flex-col justify-between gap-3 overflow-y-auto p-2 ">
+      {/* Header */}
+      <div className="flex shrink-0 items-center border-b">
         <Button
           variant="ghost"
           size="icon"
@@ -40,9 +40,13 @@ export default function ChatWindow({
         </div>
       </div>
 
+      {/* Scrollable messages */}
       <MessageList messages={messages} currentUserId={currentUserId} />
 
-      <MessageInput conversationId={conversation.id} onSend={onSendMessage} />
+      {/* Fixed input */}
+      <div className="shrink-0 border-t">
+        <MessageInput conversationId={conversation.id} onSend={onSendMessage} />
+      </div>
     </div>
   );
 }

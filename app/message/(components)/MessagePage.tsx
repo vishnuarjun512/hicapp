@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { AppShell } from "@/components/app-shell";
 import { Card } from "@/components/ui/card";
@@ -10,21 +11,32 @@ import {
   getConversationMessages,
   getConversations,
   sendMessage,
-} from "@/lib/message/message-api";
+} from "@/app/(apiCalls)/message/message-api";
 
-import { Conversation, Message } from "@/lib/message/message";
-import ChatWindow from "./(components)/chat-window";
-import ConversationList from "./(components)/conversation-list";
+import { Conversation, Message } from "@/lib/types";
 
-export default function MessagesPage() {
+import ChatWindow from "./chat-window";
+import ConversationList from "./conversation-list";
+import { useApi } from "@/app/(apiCalls)/useApi";
+import { useDataStore } from "@/lib/stores/data-store";
+
+type MessagesPageProps = {
+  conversationId: string | null;
+};
+
+export default function MessagesPage({ conversationId }: MessagesPageProps) {
   const { user } = useAuthStore();
+  const { execute } = useApi();
+  const router = useRouter();
+  const { conversations, setConversations, messages, setMessages } =
+    useDataStore();
 
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-
-  const [selectedConversation, setSelectedConversation] =
-    useState<Conversation | null>(null);
-
-  const [messages, setMessages] = useState<Message[]>([]);
+  const selectedConversation =
+    conversationId && conversations && conversations.length > 0
+      ? (conversations.find(
+          (conversation) => conversation.id === conversationId,
+        ) ?? null)
+      : null;
 
   const [loadingConversations, setLoadingConversations] = useState(true);
 
@@ -37,11 +49,14 @@ export default function MessagesPage() {
    */
 
   useEffect(() => {
+    if (!user?.id) return;
+
     const loadConversations = async () => {
-      if (!user) return null;
       try {
         setLoadingConversations(true);
-        const data = await getConversations(user.id);
+
+        const data = await execute(() => getConversations(user.id));
+
         setConversations(data);
       } catch (error) {
         console.error("Failed to load conversations:", error);
@@ -51,16 +66,32 @@ export default function MessagesPage() {
     };
 
     loadConversations();
-  }, []);
+  }, [user?.id]);
+
+  /*
+   * --------------------------------
+   * SELECT CONVERSATION FROM URL
+   * --------------------------------
+   *
+   * The URL is the source of truth.
+   *
+   * /message
+   *      -> conversationId = null
+   *
+   * /message/123
+   *      -> conversationId = "123"
+   */
 
   /*
    * --------------------------------
    * GET MESSAGES
    * --------------------------------
+   *
+   * Fetch messages ONLY from conversationId.
    */
 
   useEffect(() => {
-    if (!selectedConversation) {
+    if (!conversationId) {
       setMessages([]);
       return;
     }
@@ -68,18 +99,21 @@ export default function MessagesPage() {
     const loadMessages = async () => {
       try {
         setLoadingMessages(true);
-        const data = await getConversationMessages(selectedConversation.id);
-        console.log("Messages ->", data);
+
+        const data = await getConversationMessages(conversationId);
+
         setMessages(data);
       } catch (error) {
         console.error("Failed to load messages:", error);
+
+        setMessages([]);
       } finally {
         setLoadingMessages(false);
       }
     };
 
     loadMessages();
-  }, [selectedConversation]);
+  }, [conversationId]);
 
   /*
    * --------------------------------
@@ -88,7 +122,7 @@ export default function MessagesPage() {
    */
 
   const handleSelectConversation = (conversation: Conversation) => {
-    setSelectedConversation(conversation);
+    router.push(`/message/${conversation.id}`);
   };
 
   /*
@@ -98,13 +132,12 @@ export default function MessagesPage() {
    */
 
   const handleSendMessage = async (content: string) => {
-    if (!selectedConversation) return;
+    if (!conversationId) return;
 
     try {
-      const newMessage = await sendMessage(selectedConversation.id, content);
-      console.log(newMessage);
+      const newMessage = await sendMessage(conversationId, content);
 
-      setMessages((currentMessages) => [...currentMessages, newMessage]);
+      setMessages([...messages, newMessage]);
     } catch (error) {
       console.error("Failed to send message:", error);
     }
@@ -117,7 +150,7 @@ export default function MessagesPage() {
    */
 
   const handleBack = () => {
-    setSelectedConversation(null);
+    router.push("/message");
   };
 
   return (
@@ -132,9 +165,18 @@ export default function MessagesPage() {
         </div>
 
         <Card className="overflow-hidden p-1">
-          <div className="grid h-160 md:grid-cols-[240px_1fr]">
-            {/* Conversations */}
-            <div className={selectedConversation ? "hidden md:block" : "block"}>
+          <div className="grid h-160 min-h-0 md:grid-cols-[240px_1fr]">
+            {/* -------------------------------- */}
+            {/* CONVERSATIONS */}
+            {/* -------------------------------- */}
+
+            <div
+              className={
+                selectedConversation
+                  ? "hidden min-h-0 md:block"
+                  : "block min-h-0"
+              }
+            >
               <ConversationList
                 conversations={conversations}
                 selectedConversation={selectedConversation}
@@ -142,10 +184,15 @@ export default function MessagesPage() {
               />
             </div>
 
-            {/* Chat */}
+            {/* -------------------------------- */}
+            {/* CHAT */}
+            {/* -------------------------------- */}
+
             <div
               className={
-                selectedConversation ? "flex min-h-0" : "hidden md:flex "
+                selectedConversation
+                  ? "flex min-h-0 min-w-0"
+                  : "hidden min-h-0 min-w-0 md:flex"
               }
             >
               {selectedConversation && (
@@ -154,7 +201,7 @@ export default function MessagesPage() {
                   messages={messages}
                   currentUserId={user?.id ?? ""}
                   onSendMessage={handleSendMessage}
-                  onBack={() => setSelectedConversation(null)}
+                  onBack={handleBack}
                 />
               )}
             </div>

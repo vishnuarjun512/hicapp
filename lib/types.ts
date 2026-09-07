@@ -1,4 +1,4 @@
-import { User } from "../stores/auth-store";
+import { User } from "@/lib/stores/auth-store";
 
 export type Conversation = {
   id: string;

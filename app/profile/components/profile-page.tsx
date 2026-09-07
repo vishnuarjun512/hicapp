@@ -9,6 +9,8 @@ import ProfileHeader from "./profile-header";
 import { useAuthStore, User } from "@/lib/stores/auth-store";
 import { useEffect, useState } from "react";
 import { useDataStore } from "@/lib/stores/data-store";
+import { useApi } from "@/app/(apiCalls)/useApi";
+import { apiFetch } from "@/app/(apiCalls)/api";
 
 export default function ProfilePage({ user }: { user: User }) {
   const { user: authUser } = useAuthStore();
@@ -19,19 +21,15 @@ export default function ProfilePage({ user }: { user: User }) {
   const [pageFollowing, setPageFollowing] = useState<User[]>([]);
   const [pagePosts, setPagePosts] = useState<Post[]>([]);
   const [own, setOwn] = useState(true);
+  const { execute } = useApi();
 
   useEffect(() => {
     if (!user?.id) return;
 
     const getProfileData = async () => {
       try {
-        const url = `${process.env.NEXT_PUBLIC_BASE_URL}/profile/${user.id}`;
-
-        const response = await fetch(url, {
+        const response = await apiFetch(`/profile/${user.id}`, {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
         });
 
         const data = await response.json();
@@ -50,7 +48,7 @@ export default function ProfilePage({ user }: { user: User }) {
 
     if (authUser?.id != user.id) {
       setOwn(false);
-      getProfileData();
+      execute(() => getProfileData());
     } else {
       setOwn(true);
       setPagePosts(posts);

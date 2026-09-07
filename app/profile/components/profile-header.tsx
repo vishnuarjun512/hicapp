@@ -11,9 +11,10 @@ import EditProfile from "./edit-profile";
 import ProfileVerificationStatus from "./profile-verification";
 import { useAuthStore, User } from "@/lib/stores/auth-store";
 import { useDataStore } from "@/lib/stores/data-store";
-import { followUser, unfollowUser } from "@/app/(apiCalls)/followApis";
-import { createConversation } from "@/lib/message/message-api";
+import { followUser, unfollowUser } from "@/app/(apiCalls)/follow/follow";
+
 import { useRouter } from "next/navigation";
+import { createConversation } from "@/app/(apiCalls)/message/message-api";
 
 export default function ProfileHeader({
   user,

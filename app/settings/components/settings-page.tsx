@@ -1,11 +1,14 @@
 "use client";
+import { handleLogOut } from "@/app/(apiCalls)/auth/auth";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -14,6 +17,7 @@ export function SettingsPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     if (user?.email) {
@@ -148,15 +152,24 @@ export function SettingsPage() {
               </label>
             </CardContent>
           </Card>
-          <Button
-            variant="destructive"
-            className="w-fit"
-            onClick={() =>
-              toast.error("Please contact support to delete your account")
-            }
-          >
-            Delete account
-          </Button>
+          <div className="flex justify-between">
+            <Button
+              variant="destructive"
+              className="w-fit"
+              onClick={() =>
+                toast.error("Please contact support to delete your account")
+              }
+            >
+              Delete account
+            </Button>{" "}
+            <Button
+              variant="destructive"
+              className="w-fit"
+              onClick={() => handleLogOut()}
+            >
+              Log Out
+            </Button>
+          </div>
         </div>
       </div>
     </AppShell>

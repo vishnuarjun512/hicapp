@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
 } from "./ui/alert-dialog";
 import Link from "next/link";
-import { followUser, unfollowUser } from "@/app/(apiCalls)/followApis";
+import { followUser, unfollowUser } from "@/app/(apiCalls)/follow/follow";
 
 type UserListProps = {
   users: User[];

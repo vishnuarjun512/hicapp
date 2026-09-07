@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
-import { Conversation } from "@/lib/message/message";
 import ConversationItem from "./conversation-item";
+import { Conversation } from "@/lib/types";
 
 type ConversationListProps = {
   conversations: Conversation[];

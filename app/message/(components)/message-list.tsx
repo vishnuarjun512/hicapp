@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Message } from "@/lib/message/message";
+
 import { Copy, MoreHorizontal, Pencil, Reply, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Message } from "@/lib/types";
 
 type MessageListProps = {
   messages: Message[];

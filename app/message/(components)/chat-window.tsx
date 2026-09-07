@@ -1,10 +1,10 @@
-import { Conversation, Message } from "@/lib/message/message";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
 import ChatHeader from "./chat-header";
 import MessageInput from "./message-input";
 import MessageList from "./message-list";
+import { Conversation, Message } from "@/lib/types";
 
 type ChatWindowProps = {
   conversation: Conversation;

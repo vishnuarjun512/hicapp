@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import UserAvatar from "@/components/user-avatar";
-import { Conversation } from "@/lib/message/message";
-
+import { Conversation } from "@/lib/types";
+import Link from "next/link";
 type ConversationItemProps = {
   conversation: Conversation;
   selected: boolean;
@@ -14,9 +14,9 @@ export default function ConversationItem({
   onSelect,
 }: ConversationItemProps) {
   return (
-    <button
+    <Link
       type="button"
-      onClick={() => onSelect(conversation)}
+      href={`/message/${conversation.id}`}
       className={`flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-muted ${
         selected ? "bg-muted" : ""
       }`}
@@ -32,6 +32,6 @@ export default function ConversationItem({
       </div>
 
       {conversation.unread > 0 && <Badge>{conversation.unread}</Badge>}
-    </button>
+    </Link>
   );
 }

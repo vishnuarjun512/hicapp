@@ -1,5 +1,5 @@
 import UserAvatar from "@/components/user-avatar";
-import { Conversation } from "@/lib/message/message";
+import { Conversation } from "@/lib/types";
 
 type ChatHeaderProps = {
   conversation: Conversation;

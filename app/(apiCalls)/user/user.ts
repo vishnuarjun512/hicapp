@@ -2,9 +2,7 @@ import { apiFetch } from "../api";
 
 export const getProfileData = async (userId: string) => {
   try {
-    const url = `${process.env.NEXT_PUBLIC_BASE_URL}/profile/${userId}`;
-
-    const response = await apiFetch(url, {
+    const response = await apiFetch(`/profile/${userId}`, {
       method: "GET",
     });
 

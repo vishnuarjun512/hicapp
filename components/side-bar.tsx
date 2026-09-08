@@ -15,6 +15,8 @@ import {
   Users,
 } from "lucide-react";
 
+import { useMessageStore } from "@/lib/stores/message-store";
+
 export default function Sidebar() {
   const iconMap = {
     home: Home,
@@ -24,6 +26,13 @@ export default function Sidebar() {
     bookmark: Bookmark,
     settings: Settings,
   };
+
+  const { conversations } = useMessageStore();
+
+  const messageCount = conversations.reduce(
+    (total, conversation) => total + conversation.unread,
+    0,
+  );
 
   const pathname = usePathname();
   return (
@@ -42,12 +51,12 @@ export default function Sidebar() {
             >
               <Icon className="size-4" />
               {item.label}
-              {item.label === "Messages" && (
+              {item.label === "Messages" && messageCount > 0 && (
                 <Badge
                   variant={active ? "secondary" : "default"}
                   className="ml-auto size-5 justify-center rounded-full p-0 text-[10px]"
                 >
-                  2
+                  {messageCount}
                 </Badge>
               )}
             </Link>

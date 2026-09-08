@@ -162,7 +162,7 @@ export type Comment = {
 };
 
 export const navItems = [
-  { label: "Home", href: "/app", icon: "home" },
+  { label: "Home", href: "/home", icon: "home" },
   { label: "Friends", href: "/friends", icon: "users" },
   { label: "Messages", href: "/message", icon: "message" },
   { label: "Profile", href: "/profile", icon: "user" },

@@ -75,11 +75,11 @@ export function AuthPage({ register = false }: { register?: boolean }) {
 
       toast.success(register ? "Account created" : "Welcome back");
 
-      setLoading(false);
-
-      router.push("/app");
+      router.push("/home");
     } catch (error) {
       console.log("Failed Register - ", error);
+    } finally {
+      setLoading(false);
     }
   };
 

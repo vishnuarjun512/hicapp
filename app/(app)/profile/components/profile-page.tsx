@@ -1,6 +1,6 @@
 "use client";
 
-import PostCard from "@/app/app/components/post-card";
+import PostCard from "@/app/(app)/home/components/post-card";
 import { AppShell } from "@/components/app-shell";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UserList from "@/components/user-list";
@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { useDataStore } from "@/lib/stores/data-store";
 import { useApi } from "@/app/(apiCalls)/useApi";
 import { apiFetch } from "@/app/(apiCalls)/api";
+import { useMessageStore } from "@/lib/stores/message-store";
 
 export default function ProfilePage({ user }: { user: User }) {
   const { user: authUser } = useAuthStore();

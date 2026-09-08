@@ -1,7 +1,7 @@
 "use client";
 
 import { AppShell } from "@/components/app-shell";
-import CreatePost from "@/app/app/components/create-post";
+import CreatePost from "@/app/(app)/home/components/create-post";
 
 import { Badge } from "@/components/ui/badge";
 import { Post, posts as fakePosts } from "@/lib/social-data";
@@ -16,6 +16,9 @@ import {
 } from "@/components/ui/select";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useDataStore } from "@/lib/stores/data-store";
+import { useMessageStore } from "@/lib/stores/message-store";
+import { useApi } from "@/app/(apiCalls)/useApi";
+import { getProfileData } from "@/app/(apiCalls)/user/user";
 
 export default function Page() {
   const [feed, setFeed] = useState<Post[]>(fakePosts);
@@ -23,37 +26,26 @@ export default function Page() {
   const { user } = useAuthStore();
 
   const { setPosts, setFollowers, setFollowing } = useDataStore();
+  const { setConversations } = useMessageStore();
+  const { execute } = useApi();
 
   useEffect(() => {
     if (!user?.id) return;
 
-    const getProfileData = async () => {
+    const getUserData = async () => {
       try {
-        const url = `${process.env.NEXT_PUBLIC_BASE_URL}/profile/${user.id}`;
-
-        const response = await fetch(url, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to fetch posts");
-        }
+        const data = await execute(() => getProfileData(user.id));
 
         setPosts(data.suggested);
-
         setFollowers(data.followers);
         setFollowing(data.following);
+        setConversations(data.conversations);
       } catch (error) {
         console.log("Profile Fetch Request Failed -> ", error);
       }
     };
 
-    getProfileData();
+    getUserData();
   }, []);
 
   return (

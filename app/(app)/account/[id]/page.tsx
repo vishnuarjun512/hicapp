@@ -1,4 +1,4 @@
-import ProfilePage from "@/app/profile/components/profile-page";
+import ProfilePage from "@/app/(app)/profile/components/profile-page";
 import UserNotFound from "./UserNotFound";
 
 async function getUserById(id: string) {

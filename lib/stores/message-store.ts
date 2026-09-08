@@ -10,7 +10,7 @@ type MessageState = {
 
   messagesByConversation: Record<string, Message[]>;
 
-  setConversations: (conversation: Conversation) => void;
+  setConversations: (conversation: Conversation[]) => void;
 
   setMessages: (conversationId: string, messages: Message[]) => void;
 
@@ -21,6 +21,9 @@ type MessageState = {
   removeMessage: (conversationId: string, messageId: string) => void;
 
   clearConversation: (conversationId: string) => void;
+
+  markConversationAsRead: (conversationId: string) => void;
+
   resetMessages: () => void;
 };
 
@@ -30,8 +33,7 @@ export const useMessageStore = create<MessageState>()(
       conversations: [],
       messagesByConversation: {},
 
-      setConversations: (conversation) =>
-        set({ conversations: [...conversations, conversation] }),
+      setConversations: (conversation) => set({ conversations: conversation }),
 
       setMessages: (conversationId, messages) =>
         set((state) => ({
@@ -88,7 +90,20 @@ export const useMessageStore = create<MessageState>()(
           };
         }),
 
-      resetMessages: () => set({ messagesByConversation: {} }),
+      markConversationAsRead: (conversationId: string) =>
+        set((state) => ({
+          conversations: state.conversations.map((conversation) =>
+            conversation.id === conversationId
+              ? {
+                  ...conversation,
+                  unread: 0,
+                }
+              : conversation,
+          ),
+        })),
+
+      resetMessages: () =>
+        set({ messagesByConversation: {}, conversations: [] }),
     }),
 
     {

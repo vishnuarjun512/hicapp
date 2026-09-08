@@ -45,7 +45,7 @@ export function LandingPage() {
               <Link href="/register">
                 <Button size="lg">Create your account</Button>
               </Link>
-              <Link href="/app">
+              <Link href="/home">
                 <Button size="lg" variant="outline">
                   Explore the feed <ChevronDown data-icon="inline-end" />
                 </Button>

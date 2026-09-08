@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import { AppShell } from "@/components/app-shell";
 import { Card } from "@/components/ui/card";
@@ -10,23 +9,27 @@ import { useAuthStore } from "@/lib/stores/auth-store";
 import {
   getConversationMessages,
   getConversations,
-  sendMessage,
 } from "@/app/(apiCalls)/message/message-api";
 
-import { Conversation, Message } from "@/lib/types";
+import { Conversation } from "@/lib/types";
 
-import ChatWindow from "./chat-window";
-import ConversationList from "./conversation-list";
 import { useApi } from "@/app/(apiCalls)/useApi";
 import { useMessageStore } from "@/lib/stores/message-store";
-import WebSocketTest from "./Websocket";
-import { useWebSocket } from "@/app/(apiCalls)/useWebsocket";
+import { useWebSocket } from "@/components/WebSocketProvider";
+import ConversationList from "./(components)/conversation-list";
+import ChatWindow from "./(components)/chat-window";
 
 export default function MessagesPage() {
   const { user } = useAuthStore();
   const { execute } = useApi();
-  const { messagesByConversation, setMessages, addMessage } = useMessageStore();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const {
+    messagesByConversation,
+    setMessages,
+    addMessage,
+    conversations,
+    setConversations,
+    markConversationAsRead,
+  } = useMessageStore();
 
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
@@ -45,7 +48,6 @@ export default function MessagesPage() {
         setLoadingConversations(true);
 
         const data = await execute(() => getConversations(user.id));
-        console.log(data);
         setConversations(data);
       } catch (error) {
         console.error("Failed to load conversations:", error);
@@ -85,10 +87,12 @@ export default function MessagesPage() {
       }
     };
 
-    sendMessageWs({
-      type: "conversation:read",
-      conversationId: selectedConversation.id,
-    });
+    if (selectedConversation.unread > 0) {
+      sendMessageWs({
+        type: "conversation:read",
+        conversationId: selectedConversation.id,
+      });
+    }
 
     loadMessages();
   }, [selectedConversation]);
@@ -97,6 +101,7 @@ export default function MessagesPage() {
 
   const handleSelectConversation = (conversation: Conversation) => {
     setSelectedConversation(conversation);
+    markConversationAsRead(conversation.id);
   };
 
   //  SEND MESSAGE
@@ -110,7 +115,6 @@ export default function MessagesPage() {
         conversationId: selectedConversation.id,
         content,
       });
-      // addMessage(selectedConversation.id, newMessage);
     } catch (error) {
       console.error("Failed to send message:", error);
     }

@@ -1,4 +1,4 @@
-import MessagesPage from "./(components)/MessagePage";
+import MessagesPage from "./MessagePage";
 
 export default async function Page() {
   return <MessagesPage />;

@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Bookmark, ChevronDown } from "lucide-react";
-import PostCard from "@/app/app/components/post-card";
+import PostCard from "@/app/(app)/home/components/post-card";
 
 export function SavedPage() {
   const saved = posts.filter((post) => post.saved);

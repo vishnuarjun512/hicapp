@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { Copy, MoreHorizontal, Pencil, Reply, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -17,7 +17,6 @@ import {
 
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -26,9 +25,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Message } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type MessageListProps = {
-  messages: Message[];
+  loadingMessages?: boolean;
+  conversationId: string | null;
+  messages: Record<string, Message[]>;
   currentUserId: string;
 
   onDeleteMessage?: (message: Message, deleteForEveryone: boolean) => void;
@@ -75,8 +77,10 @@ function isSameDay(first: string, second: string) {
 }
 
 export default function MessageList({
+  loadingMessages,
   messages,
   currentUserId,
+  conversationId,
   onDeleteMessage,
   onEditMessage,
   onReplyMessage,
@@ -87,12 +91,16 @@ export default function MessageList({
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  const conversationMessages = conversationId
+    ? (messages[conversationId] ?? [])
+    : [];
+
   const sortedMessages = useMemo(() => {
-    return [...messages].sort(
+    return [...conversationMessages].sort(
       (a, b) =>
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
     );
-  }, [messages]);
+  }, [conversationMessages]);
 
   /*
    * Automatically scroll to the newest message.
@@ -100,12 +108,27 @@ export default function MessageList({
    * The ref is placed at the very bottom of the scroll container,
    * so scrollIntoView() moves only the message area.
    */
+  const previousConversationId = useRef<string | null>(null);
+
   useEffect(() => {
+    const isConversationChange =
+      previousConversationId.current !== conversationId;
+
+    if (isConversationChange) {
+      bottomRef.current?.scrollIntoView({
+        behavior: "instant",
+        block: "end",
+      });
+
+      previousConversationId.current = conversationId;
+      return;
+    }
+
     bottomRef.current?.scrollIntoView({
       behavior: "smooth",
       block: "end",
     });
-  }, [sortedMessages]);
+  }, [sortedMessages, conversationId]);
 
   const handleCopy = async (message: Message) => {
     try {
@@ -132,6 +155,10 @@ export default function MessageList({
    * This is important because React requires hooks
    * to execute in the same order on every render.
    */
+  if (loadingMessages) {
+    return <MessageSkeleton />;
+  }
+
   if (!sortedMessages.length) {
     return (
       <div className="flex min-h-0 flex-1 items-center justify-center p-6">
@@ -149,7 +176,7 @@ export default function MessageList({
   return (
     <>
       {/* Message scroll area */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-hidden px-3 py-2 sm:px-6 sm:py-3">
+      <div className="hide-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-2 sm:px-6 sm:py-3">
         {sortedMessages.map((message, index) => {
           const isMine = message.sender.id === currentUserId;
 
@@ -298,6 +325,42 @@ export default function MessageList({
         </AlertDialogContent>
       </AlertDialog>
     </>
+  );
+}
+
+function MessageSkeleton() {
+  return (
+    <div className="flex min-h-0 flex-1 flex-col justify-end gap-3 overflow-hidden px-3 py-3 sm:px-6">
+      {/* Other person's messages */}
+      <div className="flex justify-start">
+        <div className="space-y-1">
+          <Skeleton className="h-9 w-40 rounded-2xl rounded-bl-md" />
+          <Skeleton className="h-2 w-10" />
+        </div>
+      </div>
+
+      <div className="flex justify-start">
+        <Skeleton className="h-9 w-56 rounded-2xl rounded-bl-md" />
+      </div>
+
+      {/* Your messages */}
+      <div className="flex justify-end">
+        <div className="space-y-1">
+          <Skeleton className="h-9 w-48 rounded-2xl rounded-br-md" />
+          <div className="flex justify-end">
+            <Skeleton className="h-2 w-10" />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-end">
+        <Skeleton className="h-9 w-32 rounded-2xl rounded-br-md" />
+      </div>
+
+      <div className="flex justify-start">
+        <Skeleton className="h-12 w-64 rounded-2xl rounded-bl-md" />
+      </div>
+    </div>
   );
 }
 

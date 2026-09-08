@@ -168,3 +168,11 @@
     @apply font-sans;
   }
 }
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  scroll-behavior: smooth;
+}

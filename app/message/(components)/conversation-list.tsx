@@ -14,7 +14,7 @@ export default function ConversationList({
   onSelectConversation,
 }: ConversationListProps) {
   return (
-    <div className="flex min-h-0 flex-col border-r">
+    <div className="flex min-h-0 flex-col border-r h-full">
       <div className="border-b p-4">
         <Input placeholder="Search conversations" />
       </div>

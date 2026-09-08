@@ -7,8 +7,9 @@ import MessageList from "./message-list";
 import { Conversation, Message } from "@/lib/types";
 
 type ChatWindowProps = {
+  loadingMessages?: boolean;
   conversation: Conversation;
-  messages: Message[];
+  messages: Record<string, Message[]>;
   currentUserId: string;
   onSendMessage: (content: string) => void;
   onBack: () => void;
@@ -18,6 +19,7 @@ export default function ChatWindow({
   conversation,
   messages,
   currentUserId,
+  loadingMessages,
   onSendMessage,
   onBack,
 }: ChatWindowProps) {
@@ -41,7 +43,12 @@ export default function ChatWindow({
       </div>
 
       {/* Scrollable messages */}
-      <MessageList messages={messages} currentUserId={currentUserId} />
+      <MessageList
+        loadingMessages={loadingMessages}
+        conversationId={conversation.id}
+        messages={messages}
+        currentUserId={currentUserId}
+      />
 
       {/* Fixed input */}
       <div className="shrink-0 border-t">

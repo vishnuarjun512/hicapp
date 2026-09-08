@@ -18,35 +18,25 @@ import { Conversation, Message } from "@/lib/types";
 import ChatWindow from "./chat-window";
 import ConversationList from "./conversation-list";
 import { useApi } from "@/app/(apiCalls)/useApi";
-import { useDataStore } from "@/lib/stores/data-store";
+import { useMessageStore } from "@/lib/stores/message-store";
+import WebSocketTest from "./Websocket";
+import { useWebSocket } from "@/app/(apiCalls)/useWebsocket";
 
-type MessagesPageProps = {
-  conversationId: string | null;
-};
-
-export default function MessagesPage({ conversationId }: MessagesPageProps) {
+export default function MessagesPage() {
   const { user } = useAuthStore();
   const { execute } = useApi();
   const router = useRouter();
-  const { conversations, setConversations, messages, setMessages } =
-    useDataStore();
+  const { messagesByConversation, setMessages, addMessage } = useMessageStore();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
 
-  const selectedConversation =
-    conversationId && conversations && conversations.length > 0
-      ? (conversations.find(
-          (conversation) => conversation.id === conversationId,
-        ) ?? null)
-      : null;
+  const [selectedConversation, setSelectedConversation] =
+    useState<Conversation | null>(null);
 
   const [loadingConversations, setLoadingConversations] = useState(true);
 
   const [loadingMessages, setLoadingMessages] = useState(false);
 
-  /*
-   * --------------------------------
-   * GET CONVERSATIONS
-   * --------------------------------
-   */
+  //  GET CONVERSATIONS
 
   useEffect(() => {
     if (!user?.id) return;
@@ -68,90 +58,58 @@ export default function MessagesPage({ conversationId }: MessagesPageProps) {
     loadConversations();
   }, [user?.id]);
 
-  /*
-   * --------------------------------
-   * SELECT CONVERSATION FROM URL
-   * --------------------------------
-   *
-   * The URL is the source of truth.
-   *
-   * /message
-   *      -> conversationId = null
-   *
-   * /message/123
-   *      -> conversationId = "123"
-   */
-
-  /*
-   * --------------------------------
-   * GET MESSAGES
-   * --------------------------------
-   *
-   * Fetch messages ONLY from conversationId.
-   */
-
   useEffect(() => {
-    if (!conversationId) {
-      setMessages([]);
+    if (!selectedConversation) {
       return;
     }
-
     const loadMessages = async () => {
+      const existingMessages =
+        useMessageStore.getState().messagesByConversation[
+          selectedConversation.id
+        ];
+
+      if (existingMessages) {
+        return;
+      }
+      setLoadingMessages(true);
       try {
-        setLoadingMessages(true);
+        const data = await getConversationMessages(selectedConversation.id);
 
-        const data = await getConversationMessages(conversationId);
-
-        setMessages(data);
+        setMessages(selectedConversation.id, data);
       } catch (error) {
-        console.error("Failed to load messages:", error);
-
-        setMessages([]);
+        console.error(error);
       } finally {
         setLoadingMessages(false);
       }
     };
 
     loadMessages();
-  }, [conversationId]);
+  }, [selectedConversation]);
 
-  /*
-   * --------------------------------
-   * SELECT CONVERSATION
-   * --------------------------------
-   */
+  // SELECT CONVERSATION
 
   const handleSelectConversation = (conversation: Conversation) => {
-    router.push(`/message/${conversation.id}`);
+    setSelectedConversation(conversation);
   };
 
-  /*
-   * --------------------------------
-   * SEND MESSAGE
-   * --------------------------------
-   */
-
+  //  SEND MESSAGE
   const handleSendMessage = async (content: string) => {
-    if (!conversationId) return;
+    if (!selectedConversation) return;
 
     try {
-      const newMessage = await sendMessage(conversationId, content);
-
-      setMessages([...messages, newMessage]);
+      const newMessage = await sendMessage(selectedConversation.id, content);
+      addMessage(selectedConversation.id, newMessage);
     } catch (error) {
       console.error("Failed to send message:", error);
     }
   };
 
-  /*
-   * --------------------------------
-   * MOBILE BACK
-   * --------------------------------
-   */
-
+  //  MOBILE BACK
   const handleBack = () => {
-    router.push("/message");
+    setSelectedConversation(null);
   };
+
+  const { connected, sendMessageWs } = useWebSocket();
 
   return (
     <AppShell>
@@ -162,6 +120,17 @@ export default function MessagesPage({ conversationId }: MessagesPageProps) {
           <p className="mt-1 text-muted-foreground">
             Private conversations with your people.
           </p>
+          <p>WebSocket: {connected ? "Connected 🟢" : "Disconnected 🔴"}</p>
+          <button
+            onClick={() => {
+              sendMessageWs({
+                type: "test",
+                message: "Hello from Hicapp!",
+              });
+            }}
+          >
+            Test WebSocket
+          </button>
         </div>
 
         <Card className="overflow-hidden p-1">
@@ -197,8 +166,9 @@ export default function MessagesPage({ conversationId }: MessagesPageProps) {
             >
               {selectedConversation && (
                 <ChatWindow
+                  loadingMessages={loadingMessages}
                   conversation={selectedConversation}
-                  messages={messages}
+                  messages={messagesByConversation}
                   currentUserId={user?.id ?? ""}
                   onSendMessage={handleSendMessage}
                   onBack={handleBack}

@@ -14,17 +14,13 @@ type DataState = {
   followRequests: User[];
   sentFollowRequests: User[];
 
-  conversations: Conversation[];
-  messages: Message[];
-
   setPosts: (post: Post[]) => void;
   setSuggestions: (suggestions: User[]) => void;
   setFollowers: (followers: User[]) => void;
   setFollowing: (following: User[]) => void;
   setFollowRequests: (followRequests: User[]) => void;
   setSentFollowRequests: (sentFollowRequests: User[]) => void;
-  setConversations: (conversations: Conversation[]) => void;
-  setMessages: (messages: Message[]) => void;
+  resetData: () => void;
 };
 
 export const useDataStore = create<DataState>()(
@@ -36,8 +32,6 @@ export const useDataStore = create<DataState>()(
       following: [],
       followRequests: [],
       sentFollowRequests: [],
-      conversations: [],
-      messages: [],
 
       setPosts: (posts) => set({ posts }),
       setSuggestions: (suggestions) => set({ suggestions }),
@@ -46,9 +40,16 @@ export const useDataStore = create<DataState>()(
       setFollowRequests: (followRequests) => set({ followRequests }),
       setSentFollowRequests: (sentFollowRequests) =>
         set({ sentFollowRequests }),
-      setConversations: (conversations) => set({ conversations }),
 
-      setMessages: (messages) => set({ messages }),
+      resetData: () =>
+        set({
+          posts: [],
+          suggestions: [],
+          followers: [],
+          following: [],
+          followRequests: [],
+          sentFollowRequests: [],
+        }),
     }),
 
     {

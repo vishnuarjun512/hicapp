@@ -97,8 +97,13 @@ export default function MessagesPage() {
     if (!selectedConversation) return;
 
     try {
-      const newMessage = await sendMessage(selectedConversation.id, content);
-      addMessage(selectedConversation.id, newMessage);
+      // const newMessage = await sendMessage(selectedConversation.id, content);
+      sendMessageWs({
+        type: "message:send",
+        conversationId: selectedConversation.id,
+        content,
+      });
+      // addMessage(selectedConversation.id, newMessage);
     } catch (error) {
       console.error("Failed to send message:", error);
     }
@@ -124,8 +129,9 @@ export default function MessagesPage() {
           <button
             onClick={() => {
               sendMessageWs({
-                type: "test",
-                message: "Hello from Hicapp!",
+                type: "message:send",
+                conversationId: "PUT-A-REAL-CONVERSATION-ID-HERE",
+                content: "Hello from WebSocket!",
               });
             }}
           >

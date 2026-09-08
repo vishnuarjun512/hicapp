@@ -12,9 +12,7 @@ export async function getConversations(userId: string) {
   return data.conversations;
 }
 
-export async function getConversationMessages(
-  conversationId: string,
-): Promise<Message[]> {
+export async function getConversationMessages(conversationId: string) {
   const url = `/conversations/${conversationId}/messages`;
 
   const response = await apiFetch(url, {

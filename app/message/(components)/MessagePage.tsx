@@ -25,7 +25,6 @@ import { useWebSocket } from "@/app/(apiCalls)/useWebsocket";
 export default function MessagesPage() {
   const { user } = useAuthStore();
   const { execute } = useApi();
-  const router = useRouter();
   const { messagesByConversation, setMessages, addMessage } = useMessageStore();
   const [conversations, setConversations] = useState<Conversation[]>([]);
 
@@ -46,7 +45,7 @@ export default function MessagesPage() {
         setLoadingConversations(true);
 
         const data = await execute(() => getConversations(user.id));
-
+        console.log(data);
         setConversations(data);
       } catch (error) {
         console.error("Failed to load conversations:", error);
@@ -62,6 +61,7 @@ export default function MessagesPage() {
     if (!selectedConversation) {
       return;
     }
+
     const loadMessages = async () => {
       const existingMessages =
         useMessageStore.getState().messagesByConversation[
@@ -73,7 +73,9 @@ export default function MessagesPage() {
       }
       setLoadingMessages(true);
       try {
-        const data = await getConversationMessages(selectedConversation.id);
+        const data = await execute(() =>
+          getConversationMessages(selectedConversation.id),
+        );
 
         setMessages(selectedConversation.id, data);
       } catch (error) {
@@ -82,6 +84,11 @@ export default function MessagesPage() {
         setLoadingMessages(false);
       }
     };
+
+    sendMessageWs({
+      type: "conversation:read",
+      conversationId: selectedConversation.id,
+    });
 
     loadMessages();
   }, [selectedConversation]);
@@ -114,7 +121,17 @@ export default function MessagesPage() {
     setSelectedConversation(null);
   };
 
-  const { connected, sendMessageWs } = useWebSocket();
+  const { connected, sendMessageWs, lastMessage } = useWebSocket();
+
+  useEffect(() => {
+    if (!lastMessage) return;
+
+    if (lastMessage.type === "message:new") {
+      const message = lastMessage.message;
+      console.log("New message from the Websocket -> ", message);
+      addMessage(message.conversationId, message);
+    }
+  }, [lastMessage]);
 
   return (
     <AppShell>
@@ -140,7 +157,7 @@ export default function MessagesPage() {
         </div>
 
         <Card className="overflow-hidden p-1">
-          <div className="grid h-160 min-h-0 md:grid-cols-[240px_1fr]">
+          <div className="grid h-145 min-h-0 md:grid-cols-[240px_1fr]">
             {/* -------------------------------- */}
             {/* CONVERSATIONS */}
             {/* -------------------------------- */}

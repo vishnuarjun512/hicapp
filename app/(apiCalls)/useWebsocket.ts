@@ -7,6 +7,8 @@ export const useWebSocket = () => {
 
   const [connected, setConnected] = useState(false);
 
+  const [lastMessage, setLastMessage] = useState<any>(null);
+
   useEffect(() => {
     const socket = new WebSocket("ws://localhost:4000");
 
@@ -22,6 +24,7 @@ export const useWebSocket = () => {
       const data = JSON.parse(event.data);
 
       console.log("📨 WebSocket message:", data);
+      setLastMessage(data);
     };
 
     socket.onclose = () => {
@@ -57,5 +60,6 @@ export const useWebSocket = () => {
   return {
     connected,
     sendMessageWs,
+    lastMessage,
   };
 };

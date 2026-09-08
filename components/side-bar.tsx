@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 
 import { useMessageStore } from "@/lib/stores/message-store";
+import { useEffect, useState } from "react";
+import { useAuthStore } from "@/lib/stores/auth-store";
 
 export default function Sidebar() {
   const iconMap = {
@@ -28,12 +30,23 @@ export default function Sidebar() {
   };
 
   const { conversations } = useMessageStore();
+  const { user } = useAuthStore();
 
-  const messageCount = conversations.reduce(
-    (total, conversation) => total + conversation.unread,
-    0,
-  );
+  const [messageCount, setMessageCount] = useState(0);
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
 
+    const value =
+      conversations && conversations?.length > 0
+        ? conversations?.reduce(
+            (total, conversation) => total + conversation.unread,
+            0,
+          )
+        : 0;
+    setMessageCount(value);
+  }, [user]);
   const pathname = usePathname();
   return (
     <aside className="sticky top-24 hidden h-fit w-52 shrink-0 lg:block">

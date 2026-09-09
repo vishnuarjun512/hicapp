@@ -47,6 +47,7 @@ export default function Sidebar() {
         : 0;
     setMessageCount(value);
   }, [user]);
+
   const pathname = usePathname();
   return (
     <aside className="sticky top-24 hidden h-fit w-52 shrink-0 lg:block">

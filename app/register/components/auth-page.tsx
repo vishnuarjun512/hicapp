@@ -45,9 +45,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
       password: password,
     });
 
-    const url = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/${
-      register ? "register" : "login"
-    }`;
+    const url = `/api/${register ? "register" : "login"}`;
 
     try {
       const response = await fetch(url, {
@@ -55,7 +53,6 @@ export function AuthPage({ register = false }: { register?: boolean }) {
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include",
         body: JSON.stringify({
           email,
           password,

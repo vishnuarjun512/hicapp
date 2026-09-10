@@ -187,7 +187,7 @@ export default function MessageList({
             !isSameDay(previousMessage.createdAt, message.createdAt);
 
           return (
-            <div key={message.id} className="mt-2">
+            <div key={message.id + message.content} className="mt-2">
               {/* Date separator */}
               {showDate && (
                 <div className="my-2 flex items-center gap-3">

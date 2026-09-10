@@ -16,6 +16,8 @@ type MessageState = {
 
   addMessage: (conversationId: string, message: Message) => void;
 
+  receivedMessage: (conversationId: string, message: Message) => void;
+
   updateMessage: (conversationId: string, message: Message) => void;
 
   removeMessage: (conversationId: string, messageId: string) => void;
@@ -53,6 +55,29 @@ export const useMessageStore = create<MessageState>()(
               message,
             ],
           },
+        })),
+
+      receivedMessage: (conversationId, message) =>
+        set((state) => ({
+          messagesByConversation: {
+            ...state.messagesByConversation,
+
+            [conversationId]: [
+              ...(state.messagesByConversation[conversationId] ?? []),
+              message,
+            ],
+          },
+
+          conversations: state.conversations.map((conversation) =>
+            conversation.id === conversationId
+              ? {
+                  ...conversation,
+                  preview: message.content,
+                  unread: conversation.unread + 1,
+                  lastMessageAt: message.createdAt,
+                }
+              : conversation,
+          ),
         })),
 
       updateMessage: (conversationId, message) =>

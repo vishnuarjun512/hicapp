@@ -5,7 +5,7 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BASE_URL!;
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const url = `${BACKEND_URL}/auth/login`;
+    const url = `${BACKEND_URL}/auth/register`;
 
     const backendResponse = await fetch(url, {
       method: "POST",
@@ -28,26 +28,9 @@ export async function POST(request: NextRequest) {
       user: data.user,
     });
 
-    // Backend should return the tokens in JSON
-    response.cookies.set("hicappAccessToken", data.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 5,
-    });
-
-    response.cookies.set("hicappRefreshToken", data.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 10,
-    });
-
     return response;
   } catch (error) {
-    console.error("LOGIN API ERROR:", error);
+    console.error("REGISTER API ERROR:", error);
 
     return NextResponse.json(
       {

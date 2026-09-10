@@ -59,12 +59,11 @@ export function AuthPage({ register = false }: { register?: boolean }) {
         }),
       });
 
+      const data = await response.json();
       // Check if the response status is 200-299
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        throw new Error(`${data.message}`);
       }
-
-      const data = await response.json();
 
       console.log("[AUTH RESPONSE] - ", data);
 
@@ -72,9 +71,10 @@ export function AuthPage({ register = false }: { register?: boolean }) {
 
       toast.success(register ? "Account created" : "Welcome back");
 
-      router.push("/home");
-    } catch (error) {
+      router.push(register ? "/" : "/home");
+    } catch (error: any) {
       console.log("Failed Register - ", error);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }

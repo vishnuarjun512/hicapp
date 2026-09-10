@@ -29,6 +29,7 @@ export default function MessagesPage() {
     conversations,
     setConversations,
     markConversationAsRead,
+    receivedMessage,
   } = useMessageStore();
 
   const [selectedConversation, setSelectedConversation] =
@@ -134,6 +135,11 @@ export default function MessagesPage() {
       const message = lastMessage.message;
       console.log("New message from the Websocket -> ", message);
       addMessage(message.conversationId, message);
+    }
+
+    if (lastMessage.type == "message:read") {
+      const newMessage = lastMessage.newMessage;
+      receivedMessage(newMessage.conversation_id, newMessage);
     }
   }, [lastMessage]);
 

@@ -29,6 +29,7 @@ export default function MessagesPage() {
     conversations,
     setConversations,
     markConversationAsRead,
+    receivedMessage,
   } = useMessageStore();
 
   const [selectedConversation, setSelectedConversation] =
@@ -132,6 +133,7 @@ export default function MessagesPage() {
   const handleBack = () => {
     setSelectedConversation(null);
   };
+
   const { connected, sendMessageWs } = useWebSocket();
 
   return (

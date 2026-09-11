@@ -20,11 +20,21 @@ type MessageState = {
 
   receivedMessage: (conversationId: string, message: Message) => void;
 
+<<<<<<< HEAD
   updateParticipantReadState: (
     conversationId: string,
     userId: string,
     lastReadAt: string,
   ) => void;
+=======
+  receivedMessage: (conversationId: string, message: Message) => void;
+
+  updateMessage: (conversationId: string, message: Message) => void;
+
+  removeMessage: (conversationId: string, messageId: string) => void;
+
+  clearConversation: (conversationId: string) => void;
+>>>>>>> 736e7c20534841ad730a3ba91ffb9168c42b59f0
 
   markConversationAsRead: (conversationId: string) => void;
 
@@ -75,7 +85,63 @@ export const useMessageStore = create<MessageState>()(
       // RECEIVE MESSAGE
       // ============================================
 
+<<<<<<< HEAD
       receivedMessage: (conversationId, message) =>
+=======
+            [conversationId]: [
+              ...(state.messagesByConversation[conversationId] ?? []),
+              message,
+            ],
+          },
+        })),
+
+      receivedMessage: (conversationId, message) =>
+        set((state) => ({
+          messagesByConversation: {
+            ...state.messagesByConversation,
+
+            [conversationId]: [
+              ...(state.messagesByConversation[conversationId] ?? []),
+              message,
+            ],
+          },
+
+          conversations: state.conversations.map((conversation) =>
+            conversation.id === conversationId
+              ? {
+                  ...conversation,
+                  preview: message.content,
+                  unread: conversation.unread + 1,
+                  lastMessageAt: message.createdAt,
+                }
+              : conversation,
+          ),
+        })),
+
+      updateMessage: (conversationId, message) =>
+        set((state) => ({
+          messagesByConversation: {
+            ...state.messagesByConversation,
+
+            [conversationId]: (
+              state.messagesByConversation[conversationId] ?? []
+            ).map((item) => (item.id === message.id ? message : item)),
+          },
+        })),
+
+      removeMessage: (conversationId, messageId) =>
+        set((state) => ({
+          messagesByConversation: {
+            ...state.messagesByConversation,
+
+            [conversationId]: (
+              state.messagesByConversation[conversationId] ?? []
+            ).filter((message) => message.id !== messageId),
+          },
+        })),
+
+      clearConversation: (conversationId) =>
+>>>>>>> 736e7c20534841ad730a3ba91ffb9168c42b59f0
         set((state) => {
           const existingMessages =
             state.messagesByConversation[conversationId] ?? [];

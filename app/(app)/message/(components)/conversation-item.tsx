@@ -15,8 +15,6 @@ export default function ConversationItem({
   selected,
   onSelect,
 }: ConversationItemProps) {
-  const { user } = useAuthStore();
-  const participant = conversation?.participants[0];
   return (
     <button
       type="button"
@@ -25,10 +23,10 @@ export default function ConversationItem({
         selected ? "bg-muted" : ""
       }`}
     >
-      <UserAvatar user={participant} size="size-9" />
+      <UserAvatar user={conversation.user} size="size-9" />
 
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium">{participant.name}</p>
+        <p className="text-sm font-medium">{conversation.user.name}</p>
 
         <p className="truncate text-xs text-muted-foreground">
           {conversation.preview}

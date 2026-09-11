@@ -301,9 +301,9 @@ export default function MessageList({
 
   return (
     <>
-      {/* ====================================================== */}
-      {/* MESSAGE SCROLL AREA */}
-      {/* ====================================================== */}
+      {/* ====================================================== /}
+{/ MESSAGE SCROLL AREA /}
+{/ ====================================================== */}
 
       <div className="hide-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-2 sm:px-6 sm:py-3">
         {sortedMessages.map((message, index) => {
@@ -438,30 +438,30 @@ export default function MessageList({
 
                     <div
                       className="
-                          grid
-                          grid-rows-[0fr]
-                          opacity-0
-                          transition-all
-                          duration-200
-                          ease-out
-                          group-hover:grid-rows-[1fr]
-                          group-hover:opacity-100
-                          group-hover:delay-800
-                        "
+                      grid
+                      grid-rows-[0fr]
+                      opacity-0
+                      transition-all
+                      duration-200
+                      ease-out
+                      group-hover:grid-rows-[1fr]
+                      group-hover:opacity-100
+                      group-hover:delay-800
+                    "
                     >
                       <div className="min-h-0 overflow-hidden">
                         <span
                           className="
-                              block
-                              -translate-y-1
-                              pt-0.5
-                              text-[10px]
-                              text-muted-foreground
-                              transition-transform
-                              duration-200
-                              ease-out
-                              group-hover:translate-y-0
-                            "
+                          block
+                          -translate-y-1
+                          pt-0.5
+                          text-[10px]
+                          text-muted-foreground
+                          transition-transform
+                          duration-200
+                          ease-out
+                          group-hover:translate-y-0
+                        "
                         >
                           {formatMessageTime(message.createdAt)}
                         </span>

@@ -5,7 +5,6 @@ export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   const accessToken = request.cookies.get("hicappAccessToken");
-  console.log("Access Token ->", accessToken);
 
   const publicRoutes = ["/", "/login", "/register"];
 

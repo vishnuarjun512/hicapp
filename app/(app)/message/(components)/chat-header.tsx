@@ -8,9 +8,9 @@ type ChatHeaderProps = {
 
 export default function ChatHeader({ conversation }: ChatHeaderProps) {
   const { user } = useAuthStore();
-  const participants = conversation.participants.filter(
+  const participant = conversation.participants.filter(
     (p) => p.id != user?.id,
-  );
+  )[0];
 
   return (
     <div className="flex items-center gap-3 border-b p-4">

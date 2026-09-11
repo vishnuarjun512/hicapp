@@ -10,17 +10,21 @@ type MessageState = {
 
   messagesByConversation: Record<string, Message[]>;
 
-  setConversations: (conversation: Conversation[]) => void;
+  activeConversationId: string | null;
+
+  setActiveConversation: (conversationId: string | null) => void;
+
+  setConversations: (conversations: Conversation[]) => void;
 
   setMessages: (conversationId: string, messages: Message[]) => void;
 
-  addMessage: (conversationId: string, message: Message) => void;
+  receivedMessage: (conversationId: string, message: Message) => void;
 
-  updateMessage: (conversationId: string, message: Message) => void;
-
-  removeMessage: (conversationId: string, messageId: string) => void;
-
-  clearConversation: (conversationId: string) => void;
+  updateParticipantReadState: (
+    conversationId: string,
+    userId: string,
+    lastReadAt: string,
+  ) => void;
 
   markConversationAsRead: (conversationId: string) => void;
 
@@ -31,66 +35,88 @@ export const useMessageStore = create<MessageState>()(
   persist(
     (set) => ({
       conversations: [],
+
       messagesByConversation: {},
 
-      setConversations: (conversation) => set({ conversations: conversation }),
+      activeConversationId: null,
+
+      // ============================================
+      // ACTIVE CONVERSATION
+      // ============================================
+
+      setActiveConversation: (conversationId) =>
+        set({
+          activeConversationId: conversationId,
+        }),
+
+      // ============================================
+      // CONVERSATIONS
+      // ============================================
+
+      setConversations: (conversations) =>
+        set({
+          conversations,
+        }),
+
+      // ============================================
+      // LOAD MESSAGES
+      // ============================================
 
       setMessages: (conversationId, messages) =>
         set((state) => ({
           messagesByConversation: {
             ...state.messagesByConversation,
+
             [conversationId]: messages,
           },
         })),
 
-      addMessage: (conversationId, message) =>
-        set((state) => ({
-          messagesByConversation: {
-            ...state.messagesByConversation,
+      // ============================================
+      // RECEIVE MESSAGE
+      // ============================================
 
-            [conversationId]: [
-              ...(state.messagesByConversation[conversationId] ?? []),
-              message,
-            ],
-          },
-        })),
-
-      updateMessage: (conversationId, message) =>
-        set((state) => ({
-          messagesByConversation: {
-            ...state.messagesByConversation,
-
-            [conversationId]: (
-              state.messagesByConversation[conversationId] ?? []
-            ).map((item) => (item.id === message.id ? message : item)),
-          },
-        })),
-
-      removeMessage: (conversationId, messageId) =>
-        set((state) => ({
-          messagesByConversation: {
-            ...state.messagesByConversation,
-
-            [conversationId]: (
-              state.messagesByConversation[conversationId] ?? []
-            ).filter((message) => message.id !== messageId),
-          },
-        })),
-
-      clearConversation: (conversationId) =>
+      receivedMessage: (conversationId, message) =>
         set((state) => {
-          const messages = {
-            ...state.messagesByConversation,
-          };
+          const existingMessages =
+            state.messagesByConversation[conversationId] ?? [];
 
-          delete messages[conversationId];
+          // Prevent duplicate messages
+          if (existingMessages.some((item) => item.id === message.id)) {
+            return state;
+          }
+
+          const isActive = state.activeConversationId === conversationId;
 
           return {
-            messagesByConversation: messages,
+            messagesByConversation: {
+              ...state.messagesByConversation,
+
+              [conversationId]: [...existingMessages, message],
+            },
+
+            conversations: state.conversations.map((conversation) =>
+              conversation.id === conversationId
+                ? {
+                    ...conversation,
+
+                    preview: message.content,
+
+                    lastMessageAt: message.createdAt,
+
+                    unread: isActive
+                      ? conversation.unread
+                      : conversation.unread + 1,
+                  }
+                : conversation,
+            ),
           };
         }),
 
-      markConversationAsRead: (conversationId: string) =>
+      // ============================================
+      // MARK CONVERSATION AS READ
+      // ============================================
+
+      markConversationAsRead: (conversationId) =>
         set((state) => ({
           conversations: state.conversations.map((conversation) =>
             conversation.id === conversationId
@@ -102,8 +128,55 @@ export const useMessageStore = create<MessageState>()(
           ),
         })),
 
+      // ============================================
+      // UPDATE PARTICIPANT READ STATE
+      // ============================================
+      updateParticipantReadState: (conversationId, userId, lastReadAt) =>
+        set((state) => {
+          console.log("🧠 Updating read state:", {
+            conversationId,
+            userId,
+            lastReadAt,
+          });
+
+          const conversation = state.conversations.find(
+            (conversation) => conversation.id === conversationId,
+          );
+
+          console.log("💬 Conversation before update:", conversation);
+
+          return {
+            conversations: state.conversations.map((conversation) => {
+              if (conversation.id !== conversationId) {
+                return conversation;
+              }
+
+              return {
+                ...conversation,
+                participants: conversation.participants.map((participant) => {
+                  if (participant.id !== userId) {
+                    return participant;
+                  }
+
+                  return {
+                    ...participant,
+                    lastReadAt,
+                  };
+                }),
+              };
+            }),
+          };
+        }),
+      // ============================================
+      // RESET
+      // ============================================
+
       resetMessages: () =>
-        set({ messagesByConversation: {}, conversations: [] }),
+        set({
+          messagesByConversation: {},
+          conversations: [],
+          activeConversationId: null,
+        }),
     }),
 
     {

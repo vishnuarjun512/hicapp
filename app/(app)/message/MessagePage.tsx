@@ -25,7 +25,7 @@ export default function MessagesPage() {
   const {
     messagesByConversation,
     setMessages,
-    addMessage,
+
     conversations,
     setConversations,
     markConversationAsRead,
@@ -48,6 +48,7 @@ export default function MessagesPage() {
         setLoadingConversations(true);
 
         const data = await execute(() => getConversations(user.id));
+        console.log("Conversations->", data);
         setConversations(data);
       } catch (error) {
         console.error("Failed to load conversations:", error);
@@ -98,10 +99,17 @@ export default function MessagesPage() {
   }, [selectedConversation]);
 
   // SELECT CONVERSATION
-
   const handleSelectConversation = (conversation: Conversation) => {
     setSelectedConversation(conversation);
+
     markConversationAsRead(conversation.id);
+
+    if (conversation.unread > 0) {
+      sendMessageWs({
+        type: "conversation:read",
+        conversationId: conversation.id,
+      });
+    }
   };
 
   //  SEND MESSAGE
@@ -124,18 +132,7 @@ export default function MessagesPage() {
   const handleBack = () => {
     setSelectedConversation(null);
   };
-
-  const { connected, sendMessageWs, lastMessage } = useWebSocket();
-
-  useEffect(() => {
-    if (!lastMessage) return;
-
-    if (lastMessage.type === "message:new") {
-      const message = lastMessage.message;
-      console.log("New message from the Websocket -> ", message);
-      addMessage(message.conversationId, message);
-    }
-  }, [lastMessage]);
+  const { connected, sendMessageWs } = useWebSocket();
 
   return (
     <AppShell>
@@ -147,17 +144,7 @@ export default function MessagesPage() {
             Private conversations with your people.
           </p>
           <p>WebSocket: {connected ? "Connected 🟢" : "Disconnected 🔴"}</p>
-          <button
-            onClick={() => {
-              sendMessageWs({
-                type: "message:send",
-                conversationId: "PUT-A-REAL-CONVERSATION-ID-HERE",
-                content: "Hello from WebSocket!",
-              });
-            }}
-          >
-            Test WebSocket
-          </button>
+          <button>Test WebSocket</button>
         </div>
 
         <Card className="overflow-hidden p-1">

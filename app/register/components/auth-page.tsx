@@ -28,13 +28,13 @@ export function AuthPage({ register = false }: { register?: boolean }) {
   const authSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const validationErrors = validateForm(email, password);
-    setErrors(validationErrors);
+    // const validationErrors = validateForm(email, password);
+    // setErrors(validationErrors);
 
-    if (Object.keys(validationErrors).length > 0) {
-      toast.error("Please fix the errors in the form");
-      return;
-    }
+    // if (Object.keys(validationErrors).length > 0) {
+    //   toast.error("Please fix the errors in the form");
+    //   return;
+    // }
 
     setLoading(true);
 

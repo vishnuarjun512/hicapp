@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import UserAvatar from "@/components/user-avatar";
+import { useAuthStore } from "@/lib/stores/auth-store";
 import { Conversation } from "@/lib/types";
 import { Button } from "@base-ui/react";
 
@@ -14,6 +15,8 @@ export default function ConversationItem({
   selected,
   onSelect,
 }: ConversationItemProps) {
+  const { user } = useAuthStore();
+  const participant = conversation?.participants[0];
   return (
     <button
       type="button"
@@ -22,10 +25,10 @@ export default function ConversationItem({
         selected ? "bg-muted" : ""
       }`}
     >
-      <UserAvatar user={conversation.user} size="size-9" />
+      <UserAvatar user={participant} size="size-9" />
 
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium">{conversation.user.name}</p>
+        <p className="text-sm font-medium">{participant.name}</p>
 
         <p className="truncate text-xs text-muted-foreground">
           {conversation.preview}

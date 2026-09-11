@@ -42,13 +42,15 @@ export default function ChatWindow({
         </div>
       </div>
 
-      {/* Scrollable messages */}
-      <MessageList
-        loadingMessages={loadingMessages}
-        conversationId={conversation.id}
-        messages={messages}
-        currentUserId={currentUserId}
-      />
+      {conversation && (
+        <MessageList
+          conversation={conversation}
+          conversationId={conversation.id}
+          messages={messages}
+          currentUserId={currentUserId}
+          loadingMessages={loadingMessages}
+        />
+      )}
 
       {/* Fixed input */}
       <div className="shrink-0 border-t">

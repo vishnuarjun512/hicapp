@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Copy, MoreHorizontal, Pencil, Reply, Trash2 } from "lucide-react";
+
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -24,13 +25,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Message } from "@/lib/types";
+
+import { Conversation, Message } from "@/lib/types";
+
 import { Skeleton } from "@/components/ui/skeleton";
+import { useMessageStore } from "@/lib/stores/message-store";
 
 type MessageListProps = {
+  conversation: Conversation;
+
   loadingMessages?: boolean;
+
   conversationId: string | null;
+
   messages: Record<string, Message[]>;
+
   currentUserId: string;
 
   onDeleteMessage?: (message: Message, deleteForEveryone: boolean) => void;
@@ -40,6 +49,10 @@ type MessageListProps = {
   onReplyMessage?: (message: Message) => void;
 };
 
+// ============================================================
+// MESSAGE TIME
+// ============================================================
+
 function formatMessageTime(dateString: string) {
   const date = new Date(dateString);
 
@@ -48,6 +61,40 @@ function formatMessageTime(dateString: string) {
     minute: "2-digit",
   });
 }
+
+// ============================================================
+// SEEN TIME
+// ============================================================
+
+function formatSeenTime(dateString: string) {
+  const diff = Date.now() - new Date(dateString).getTime();
+
+  const seconds = Math.floor(diff / 1000);
+
+  const minutes = Math.floor(seconds / 60);
+
+  const hours = Math.floor(minutes / 60);
+
+  const days = Math.floor(hours / 24);
+
+  if (seconds < 60) {
+    return "Seen now";
+  }
+
+  if (minutes < 60) {
+    return `Seen ${minutes}m ago`;
+  }
+
+  if (hours < 24) {
+    return `Seen ${hours}h ago`;
+  }
+
+  return `Seen ${days}d ago`;
+}
+
+// ============================================================
+// DATE LABEL
+// ============================================================
 
 function formatDateLabel(dateString: string) {
   const date = new Date(dateString);
@@ -72,11 +119,20 @@ function formatDateLabel(dateString: string) {
   });
 }
 
+// ============================================================
+// SAME DAY
+// ============================================================
+
 function isSameDay(first: string, second: string) {
   return new Date(first).toDateString() === new Date(second).toDateString();
 }
 
+// ============================================================
+// MESSAGE LIST
+// ============================================================
+
 export default function MessageList({
+  conversation,
   loadingMessages,
   messages,
   currentUserId,
@@ -91,9 +147,17 @@ export default function MessageList({
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  // ============================================================
+  // GET MESSAGES FOR CURRENT CONVERSATION
+  // ============================================================
+
   const conversationMessages = conversationId
     ? (messages[conversationId] ?? [])
     : [];
+
+  // ============================================================
+  // SORT MESSAGES
+  // ============================================================
 
   const sortedMessages = useMemo(() => {
     return [...conversationMessages].sort(
@@ -102,12 +166,58 @@ export default function MessageList({
     );
   }, [conversationMessages]);
 
-  /*
-   * Automatically scroll to the newest message.
-   *
-   * The ref is placed at the very bottom of the scroll container,
-   * so scrollIntoView() moves only the message area.
-   */
+  // ============================================================
+  // FIND OTHER PARTICIPANT
+  //
+  // For a DM:
+  //
+  // currentUser
+  // otherUser ← this is who we care about for "Seen"
+  //
+  // ============================================================
+  const currentConversation = useMessageStore((state) =>
+    state.conversations.find((item) => item.id === conversationId),
+  );
+
+  const otherParticipant: any = currentConversation?.participants.find(
+    (participant) => participant.id !== currentUserId,
+  );
+
+  // ============================================================
+  // FIND THE LAST MESSAGE SENT BY ME
+  // THAT THE OTHER PARTICIPANT HAS READ
+  // ============================================================
+
+  const lastReadMessageId = useMemo(() => {
+    const lastReadAt = otherParticipant?.lastReadAt;
+
+    if (!lastReadAt) {
+      return null;
+    }
+
+    const readTime = new Date(lastReadAt).getTime();
+
+    for (let i = sortedMessages.length - 1; i >= 0; i--) {
+      const message = sortedMessages[i];
+
+      if (message.sender.id !== currentUserId) {
+        continue;
+      }
+
+      const messageTime = new Date(message.createdAt).getTime();
+
+      if (messageTime <= readTime) {
+        return message.id;
+      }
+    }
+
+    return null;
+  }, [sortedMessages, currentUserId, otherParticipant?.lastReadAt]);
+
+  // ============================================================
+  // AUTOMATICALLY SCROLL TO NEWEST MESSAGE
+  // ============================================================
+
   const previousConversationId = useRef<string | null>(null);
 
   useEffect(() => {
@@ -121,6 +231,7 @@ export default function MessageList({
       });
 
       previousConversationId.current = conversationId;
+
       return;
     }
 
@@ -129,6 +240,10 @@ export default function MessageList({
       block: "end",
     });
   }, [sortedMessages, conversationId]);
+
+  // ============================================================
+  // COPY
+  // ============================================================
 
   const handleCopy = async (message: Message) => {
     try {
@@ -140,24 +255,31 @@ export default function MessageList({
     }
   };
 
+  // ============================================================
+  // DELETE
+  // ============================================================
+
   const confirmDelete = (deleteForEveryone: boolean) => {
-    if (!deleteMessage) return;
+    if (!deleteMessage) {
+      return;
+    }
 
     onDeleteMessage?.(deleteMessage, deleteForEveryone);
 
     setDeleteMessage(null);
   };
 
-  /*
-   * Empty state
-   *
-   * All hooks are above this return.
-   * This is important because React requires hooks
-   * to execute in the same order on every render.
-   */
+  // ============================================================
+  // LOADING
+  // ============================================================
+
   if (loadingMessages) {
     return <MessageSkeleton />;
   }
+
+  // ============================================================
+  // EMPTY
+  // ============================================================
 
   if (!sortedMessages.length) {
     return (
@@ -173,9 +295,16 @@ export default function MessageList({
     );
   }
 
+  // ============================================================
+  // RENDER
+  // ============================================================
+
   return (
     <>
-      {/* Message scroll area */}
+      {/* ====================================================== */}
+      {/* MESSAGE SCROLL AREA */}
+      {/* ====================================================== */}
+
       <div className="hide-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-2 sm:px-6 sm:py-3">
         {sortedMessages.map((message, index) => {
           const isMine = message.sender.id === currentUserId;
@@ -186,9 +315,24 @@ export default function MessageList({
             !previousMessage ||
             !isSameDay(previousMessage.createdAt, message.createdAt);
 
+          // ==================================================
+          // SHOULD SHOW SEEN?
+          //
+          // Only true for:
+          //
+          // 1. My message
+          // 2. It is the last message I sent
+          //    that the other participant has read
+          // ==================================================
+
+          const showSeen = isMine && message.id === lastReadMessageId;
+
           return (
             <div key={message.id} className="mt-2">
-              {/* Date separator */}
+              {/* ================================================== */}
+              {/* DATE SEPARATOR */}
+              {/* ================================================== */}
+
               {showDate && (
                 <div className="my-2 flex items-center gap-3">
                   <div className="h-px flex-1 bg-border" />
@@ -201,7 +345,10 @@ export default function MessageList({
                 </div>
               )}
 
-              {/* Message row */}
+              {/* ================================================== */}
+              {/* MESSAGE ROW */}
+              {/* ================================================== */}
+
               <div
                 className={`group flex w-full ${
                   isMine ? "justify-end" : "justify-start"
@@ -212,9 +359,15 @@ export default function MessageList({
                     isMine ? "justify-items-end" : "justify-items-start"
                   }`}
                 >
-                  {/* Message bubble */}
-                  <div className="flex flex-row justify-center items-end gap-2">
-                    {/* My message actions */}
+                  {/* ================================================== */}
+                  {/* MESSAGE BUBBLE */}
+                  {/* ================================================== */}
+
+                  <div className="flex flex-row items-end justify-center gap-2">
+                    {/* ================================================== */}
+                    {/* MY MESSAGE ACTIONS */}
+                    {/* ================================================== */}
+
                     {isMine && (
                       <MessageActions
                         message={message}
@@ -229,6 +382,11 @@ export default function MessageList({
                         onDelete={() => setDeleteMessage(message)}
                       />
                     )}
+
+                    {/* ================================================== */}
+                    {/* BUBBLE */}
+                    {/* ================================================== */}
+
                     <div
                       className={`relative z-10 wrap-break-word whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-sm leading-6 shadow-sm sm:px-4 ${
                         isMine
@@ -238,11 +396,15 @@ export default function MessageList({
                     >
                       {message.content}
                     </div>
-                    {/* My message actions */}
+
+                    {/* ================================================== */}
+                    {/* OTHER MESSAGE ACTIONS */}
+                    {/* ================================================== */}
+
                     {!isMine && (
                       <MessageActions
                         message={message}
-                        isMine
+                        isMine={false}
                         open={openMessageId === message.id}
                         onOpenChange={(open) =>
                           setOpenMessageId(open ? message.id : null)
@@ -255,35 +417,55 @@ export default function MessageList({
                     )}
                   </div>
 
-                  <div
-                    className="
-                      grid
-                      grid-rows-[0fr]
-                      opacity-0
-                      transition-all
-                      duration-200
-                      ease-out
-                      group-hover:grid-rows-[1fr]
-                      group-hover:opacity-100
-                      group-hover:delay-800
-                    "
-                  >
-                    <div className="min-h-0 overflow-hidden">
-                      <span
-                        className="
-                          block
-                          -translate-y-1
-                          pt-0.5
-                          text-[10px]
-                          text-muted-foreground
-                          transition-transform
+                  {/* ================================================== */}
+                  {/* SEEN + MESSAGE TIME */}
+                  {/* ================================================== */}
+
+                  <div className="flex flex-col items-end">
+                    {/* ================================================== */}
+                    {/* SEEN */}
+                    {/* ================================================== */}
+
+                    {showSeen && otherParticipant?.lastReadAt && (
+                      <span className="text-[10px] text-muted-foreground">
+                        {formatSeenTime(otherParticipant.lastReadAt)}
+                      </span>
+                    )}
+
+                    {/* ================================================== */}
+                    {/* MESSAGE TIME */}
+                    {/* ================================================== */}
+
+                    <div
+                      className="
+                          grid
+                          grid-rows-[0fr]
+                          opacity-0
+                          transition-all
                           duration-200
                           ease-out
-                          group-hover:translate-y-0
+                          group-hover:grid-rows-[1fr]
+                          group-hover:opacity-100
+                          group-hover:delay-800
                         "
-                      >
-                        {formatMessageTime(message.createdAt)}
-                      </span>
+                    >
+                      <div className="min-h-0 overflow-hidden">
+                        <span
+                          className="
+                              block
+                              -translate-y-1
+                              pt-0.5
+                              text-[10px]
+                              text-muted-foreground
+                              transition-transform
+                              duration-200
+                              ease-out
+                              group-hover:translate-y-0
+                            "
+                        >
+                          {formatMessageTime(message.createdAt)}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -295,7 +477,10 @@ export default function MessageList({
         <div ref={bottomRef} />
       </div>
 
-      {/* Delete confirmation */}
+      {/* ====================================================== */}
+      {/* DELETE CONFIRMATION */}
+      {/* ====================================================== */}
+
       <AlertDialog
         open={!!deleteMessage}
         onOpenChange={(open) => {
@@ -328,13 +513,19 @@ export default function MessageList({
   );
 }
 
+// ============================================================
+// MESSAGE SKELETON
+// ============================================================
+
 function MessageSkeleton() {
   return (
     <div className="flex min-h-0 flex-1 flex-col justify-end gap-3 overflow-hidden px-3 py-3 sm:px-6">
       {/* Other person's messages */}
+
       <div className="flex justify-start">
         <div className="space-y-1">
           <Skeleton className="h-9 w-40 rounded-2xl rounded-bl-md" />
+
           <Skeleton className="h-2 w-10" />
         </div>
       </div>
@@ -344,9 +535,11 @@ function MessageSkeleton() {
       </div>
 
       {/* Your messages */}
+
       <div className="flex justify-end">
         <div className="space-y-1">
           <Skeleton className="h-9 w-48 rounded-2xl rounded-br-md" />
+
           <div className="flex justify-end">
             <Skeleton className="h-2 w-10" />
           </div>
@@ -364,9 +557,15 @@ function MessageSkeleton() {
   );
 }
 
+// ============================================================
+// MESSAGE ACTIONS
+// ============================================================
+
 type MessageActionsProps = {
   message: Message;
+
   isMine: boolean;
+
   open: boolean;
 
   onOpenChange: (open: boolean) => void;

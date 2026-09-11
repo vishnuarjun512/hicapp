@@ -2,7 +2,7 @@ import { User } from "@/lib/stores/auth-store";
 
 export type Conversation = {
   id: string;
-  user: User;
+  participants: User[];
   preview: string;
   unread: number;
   isOnline?: boolean;
@@ -13,13 +13,7 @@ export type Message = {
   id: string;
   conversationId: string;
 
-  sender: {
-    id: string;
-    name: string;
-    handle: string;
-    profilePic?: string;
-  };
-
+  sender: User;
   content: string;
   createdAt: string;
   readAt?: string | null;

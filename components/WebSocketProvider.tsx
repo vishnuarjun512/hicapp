@@ -9,6 +9,8 @@ import {
   type ReactNode,
 } from "react";
 
+import { useMessageStore } from "@/lib/stores/message-store";
+
 type WebSocketProviderProps = {
   children: ReactNode;
 };
@@ -16,7 +18,6 @@ type WebSocketProviderProps = {
 type WebSocketContextType = {
   connected: boolean;
   sendMessageWs: (message: unknown) => void;
-  lastMessage: any;
 };
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
@@ -26,7 +27,11 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
   const [connected, setConnected] = useState(false);
 
-  const [lastMessage, setLastMessage] = useState<any>(null);
+  const receivedMessage = useMessageStore((state) => state.receivedMessage);
+
+  const updateParticipantReadState = useMessageStore(
+    (state) => state.updateParticipantReadState,
+  );
 
   useEffect(() => {
     const socket = new WebSocket("ws://localhost:4000");
@@ -35,42 +40,96 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
     socket.onopen = () => {
       console.log("🟢 WebSocket connected");
+
       setConnected(true);
     };
 
     socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      console.log("📨 WebSocket message:", data);
-      setLastMessage(data);
+      try {
+        const data = JSON.parse(event.data);
+
+        console.log("📨 WebSocket event:", data);
+
+        // =========================================
+        // NEW MESSAGE
+        // =========================================
+
+        if (data.type === "message:new") {
+          const message = data.message;
+
+          receivedMessage(message.conversationId, message);
+
+          return;
+        }
+
+        // =========================================
+        // CONVERSATION READ
+        // =========================================
+        if (data.type === "conversation:read") {
+          console.log("📖 READ EVENT RECEIVED:", data);
+
+          useMessageStore
+            .getState()
+            .updateParticipantReadState(
+              data.conversationId,
+              data.userId,
+              data.lastReadAt,
+            );
+
+          return;
+        }
+      } catch (error) {
+        console.error("❌ Failed to process WebSocket message:", error);
+      }
     };
 
     socket.onclose = () => {
       console.log("🔴 WebSocket disconnected");
+
       setConnected(false);
     };
 
     socket.onerror = (error) => {
       console.log("⚠️ WebSocket error:", error);
+      console.log("WebSocket URL:", socket.url);
+      console.log("WebSocket state:", socket.readyState);
+    };
+
+    socket.onclose = (event) => {
+      console.log("🔴 WebSocket closed");
+
+      console.log({
+        code: event.code,
+        reason: event.reason,
+        wasClean: event.wasClean,
+      });
+
+      setConnected(false);
     };
 
     return () => {
       socket.close();
+
       socketRef.current = null;
     };
-  }, []);
+  }, [receivedMessage, updateParticipantReadState]);
 
   const sendMessageWs = (message: unknown) => {
-    if (!socketRef.current) {
+    const socket = socketRef.current;
+
+    if (!socket) {
       console.log("WebSocket is not connected");
+
       return;
     }
 
-    if (socketRef.current.readyState !== WebSocket.OPEN) {
+    if (socket.readyState !== WebSocket.OPEN) {
       console.log("WebSocket is not open");
+
       return;
     }
 
-    socketRef.current.send(JSON.stringify(message));
+    socket.send(JSON.stringify(message));
   };
 
   return (
@@ -78,7 +137,6 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       value={{
         connected,
         sendMessageWs,
-        lastMessage,
       }}
     >
       {children}

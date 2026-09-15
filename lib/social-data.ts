@@ -66,27 +66,17 @@ export const users: User[] = [
 
 export type Post = {
   id: string;
-
   author: User;
-
   body: string;
-
   images: string[];
-
   likes?: number;
   comments?: number;
   shares?: number;
-
   liked?: boolean;
   saved?: boolean;
-
   created_at: string;
-
-  visibility: "public" | "friends" | "only-me";
-
+  visibility: "public" | "private" | "only-me";
   location?: string | null;
-
-  pinned?: boolean;
 };
 
 export const posts: Post[] = [

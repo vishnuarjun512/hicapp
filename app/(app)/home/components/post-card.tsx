@@ -296,7 +296,7 @@ export default function PostCard({
         {/* HEADER                                             */}
         {/* -------------------------------------------------- */}
 
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-1">
           <div className="flex items-start gap-3">
             <Link href={`/account/${post.author.id}`} className="shrink-0">
               <UserAvatar user={post.author} />
@@ -335,15 +335,18 @@ export default function PostCard({
                     <span className="capitalize">{visibility}</span>
                   </>
                 )}
+
+                {(post as Post & { location?: string }).location && (
+                  <div className="flex items-center gap-1 text-xs text-gray-300">
+                    <span>·</span>
+                    <MapPin className="size-3" />
+
+                    <span>
+                      {(post as Post & { location?: string }).location}
+                    </span>
+                  </div>
+                )}
               </div>
-
-              {(post as Post & { location?: string }).location && (
-                <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                  <MapPin className="size-3" />
-
-                  <span>{(post as Post & { location?: string }).location}</span>
-                </div>
-              )}
             </div>
 
             {/* ------------------------------------------------ */}

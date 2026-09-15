@@ -49,7 +49,6 @@ export default function MessagesPage() {
         setLoadingConversations(true);
 
         const data = await execute(() => getConversations(user.id));
-        console.log("Conversations->", data);
         setConversations(data);
       } catch (error) {
         console.error("Failed to load conversations:", error);
@@ -59,7 +58,7 @@ export default function MessagesPage() {
     };
 
     loadConversations();
-  }, [user?.id]);
+  }, [user]);
 
   useEffect(() => {
     if (!selectedConversation) {

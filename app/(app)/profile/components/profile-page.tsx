@@ -11,7 +11,6 @@ import { useEffect, useState } from "react";
 import { useDataStore } from "@/lib/stores/data-store";
 import { useApi } from "@/app/(apiCalls)/useApi";
 import { apiFetch } from "@/app/(apiCalls)/api";
-import { useMessageStore } from "@/lib/stores/message-store";
 
 export default function ProfilePage({ user }: { user: User }) {
   const { user: authUser } = useAuthStore();

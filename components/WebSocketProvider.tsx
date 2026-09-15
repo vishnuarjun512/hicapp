@@ -39,7 +39,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     socketRef.current = socket;
 
     socket.onopen = () => {
-      console.log("🟢 WebSocket connected");
+      // console.log("🟢 WebSocket connected");
 
       setConnected(true);
     };
@@ -84,25 +84,24 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     };
 
     socket.onclose = () => {
-      console.log("🔴 WebSocket disconnected");
-
+      // console.log("🔴 WebSocket disconnected");
       setConnected(false);
     };
 
     socket.onerror = (error) => {
       console.log("⚠️ WebSocket error:", error);
-      console.log("WebSocket URL:", socket.url);
-      console.log("WebSocket state:", socket.readyState);
+      // console.log("WebSocket URL:", socket.url);
+      // console.log("WebSocket state:", socket.readyState);
     };
 
     socket.onclose = (event) => {
-      console.log("🔴 WebSocket closed");
+      // console.log("🔴 WebSocket closed");
 
-      console.log({
-        code: event.code,
-        reason: event.reason,
-        wasClean: event.wasClean,
-      });
+      // console.log({
+      //   code: event.code,
+      //   reason: event.reason,
+      //   wasClean: event.wasClean,
+      // });
 
       setConnected(false);
     };
@@ -119,13 +118,11 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
     if (!socket) {
       console.log("WebSocket is not connected");
-
       return;
     }
 
     if (socket.readyState !== WebSocket.OPEN) {
       console.log("WebSocket is not open");
-
       return;
     }
 

@@ -33,8 +33,16 @@ export default function ProfileHeader({
   const [following, setFollowing] = useState(false);
   const { user: LoggedUser } = useAuthStore();
   const { following: authFollowing } = useDataStore();
+
   useEffect(() => {
-    if (authFollowing.some((follow) => follow.id == user.id)) {
+    if (!user) {
+      return;
+    }
+
+    if (
+      authFollowing.length > 0 &&
+      authFollowing.some((follow) => follow.id == user.id)
+    ) {
       setFollowing(true);
     }
   }, [authFollowing]);

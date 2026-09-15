@@ -21,11 +21,12 @@ import { useApi } from "@/app/(apiCalls)/useApi";
 import { getProfileData } from "@/app/(apiCalls)/user/user";
 
 export default function Page() {
-  const [feed, setFeed] = useState<Post[]>(fakePosts);
+  const [feed, setFeed] = useState<Post[]>([]);
 
   const { user } = useAuthStore();
 
-  const { setPosts, setFollowers, setFollowing } = useDataStore();
+  const { setPosts, setFollowers, setFollowing, setSuggestions } =
+    useDataStore();
   const { setConversations } = useMessageStore();
   const { execute } = useApi();
 
@@ -35,11 +36,12 @@ export default function Page() {
     const getUserData = async () => {
       try {
         const data = await execute(() => getProfileData(user.id));
-
-        setPosts(data.suggested);
+        setPosts(data.posts);
+        setSuggestions(data.suggested);
         setFollowers(data.followers);
         setFollowing(data.following);
         setConversations(data.conversations);
+        setFeed(data.posts);
       } catch (error) {
         console.log("Profile Fetch Request Failed -> ", error);
       }

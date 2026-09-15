@@ -1,5 +1,3 @@
-import { handleLogOut } from "./auth/auth";
-
 export const apiFetch = async (url: string, options: any = {}) => {
   const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 

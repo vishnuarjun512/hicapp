@@ -11,10 +11,13 @@ import { toast } from "sonner";
 import UserList from "@/components/user-list";
 import { useAuthStore, User } from "@/lib/stores/auth-store";
 import { useDataStore } from "@/lib/stores/data-store";
+import { useApi } from "@/app/(apiCalls)/useApi";
+import { apiFetch } from "@/app/(apiCalls)/api";
+import { getFriendsApiCall } from "@/app/(apiCalls)/friends/friends";
 
 export default function FriendsPage() {
   const { user } = useAuthStore();
-
+  const { execute } = useApi();
   const {
     suggestions,
     setSuggestions,
@@ -32,17 +35,13 @@ export default function FriendsPage() {
     const getFriends = async () => {
       if (!user) return;
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-        const url = `${baseUrl}/friends/${user.id}`;
+        const data = await execute(() => getFriendsApiCall(user.id));
 
-        const res = await fetch(url);
-        const data = await res.json();
-
-        setSuggestions(data.suggested);
-        setFollowRequests(data.followRequests);
-        setFollowers(data.followers);
-        setFollowing(data.following);
-        setSentFollowRequests(data.sentFollowRequests);
+        setSuggestions(data?.suggested);
+        setFollowRequests(data?.followRequests);
+        setFollowers(data?.followers);
+        setFollowing(data?.following);
+        setSentFollowRequests(data?.sentFollowRequests);
       } catch (error) {
         console.log("Get Friends Page Error = > ", error);
       }

@@ -30,6 +30,13 @@ import { Textarea } from "@/components/ui/textarea";
 import UserAvatar from "@/components/user-avatar";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { Post } from "@/lib/social-data";
+import { useApi } from "@/lib/(apiCalls)/useApi";
+import {
+  createPost,
+  getPostImageUploadUrls,
+  uploadPostImagesToURLs,
+} from "@/lib/(apiCalls)/post/post";
+import { uploadFileToS3 } from "@/lib/(apiCalls)/s3/uploadFileToS3";
 
 type Visibility = "public" | "friends" | "only-me";
 
@@ -64,6 +71,7 @@ export default function CreatePost({ onCreate }: CreatePostProps) {
   const [showLocation, setShowLocation] = useState(false);
 
   const [isDragging, setIsDragging] = useState(false);
+  const { execute } = useApi();
 
   /*
    * --------------------------------------------------
@@ -180,32 +188,61 @@ export default function CreatePost({ onCreate }: CreatePostProps) {
     }
 
     try {
+      // --------------------------------------------------
+      // 1. CREATE THE POST
+      // --------------------------------------------------
+
       const payload = {
         body: content,
         visibility,
         location: location.trim() || null,
       };
 
-      console.log("Sending:", payload);
+      const data = await execute(() => createPost(payload, user.id));
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/post/${user.id}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        },
-      );
+      let newPost = data.post;
 
-      const data = await response.json();
+      // --------------------------------------------------
+      // 2. IF THERE ARE IMAGES, GET S3 UPLOAD URLS
+      // --------------------------------------------------
 
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to create post");
+      if (images.length > 0) {
+        const uploadData = await getPostImageUploadUrls(
+          newPost.id,
+          images.map((image, index) => ({
+            contentType: image.file.type,
+            position: index + 1,
+          })),
+        );
+
+        // --------------------------------------------------
+        // 3. UPLOAD FILES DIRECTLY TO S3
+        // --------------------------------------------------
+
+        await Promise.all(
+          images.map((image, index) => {
+            const uploadInfo = uploadData.images[index];
+
+            return uploadFileToS3(uploadInfo.uploadUrl, image.file);
+          }),
+        );
+
+        // --------------------------------------------------
+        // 4. SAVE THE PERMANENT S3 URLS IN DATABASE
+        // --------------------------------------------------
+
+        const savedImages = uploadData.images.map((image: any) => ({
+          url: image.fileUrl,
+          position: image.position,
+        }));
+
+        await uploadPostImagesToURLs(newPost.id, savedImages);
+        newPost = { ...newPost, images: savedImages };
       }
 
-      const newPost = data.post;
+      // --------------------------------------------------
+      // 5. UPDATE FRONTEND
+      // --------------------------------------------------
 
       onCreate?.(newPost);
 
@@ -220,9 +257,7 @@ export default function CreatePost({ onCreate }: CreatePostProps) {
         error instanceof Error ? error.message : "Failed to create post",
       );
     }
-  };
-
-  /*
+  }; /*
    * --------------------------------------------------
    * VISIBILITY
    * --------------------------------------------------

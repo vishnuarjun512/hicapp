@@ -4,7 +4,7 @@ import { AppShell } from "@/components/app-shell";
 import CreatePost from "@/app/(app)/home/components/create-post";
 
 import { Badge } from "@/components/ui/badge";
-import { Post, posts as fakePosts } from "@/lib/social-data";
+import { Post } from "@/lib/social-data";
 import { useEffect, useState } from "react";
 import PostCard from "./components/post-card";
 import {
@@ -39,6 +39,7 @@ export default function Page() {
         setFollowers(data.followers);
         setFollowing(data.following);
         setConversations(data.conversations);
+        console.log("posts->", data.posts);
       } catch (error) {
         console.log("Profile Fetch Request Failed -> ", error);
       }

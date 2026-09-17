@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Bookmark,
@@ -76,6 +76,8 @@ import { likePost, unlikePost } from "@/lib/(apiCalls)/post/like";
 import PostCommentsSheet from "./post-comment-section";
 import { DeletePostConfirmationDialog } from "./delete-post-dialog-confirmation";
 import { EditPostDialog } from "./edit-post-dialog";
+import { deletePost } from "@/lib/(apiCalls)/post/post";
+import { useApi } from "@/lib/(apiCalls)/useApi";
 
 type PostCardProps = {
   post: Post;
@@ -116,6 +118,8 @@ export default function PostCard({
   const [pinned, setPinned] = useState(
     (post as Post & { pinned?: boolean }).pinned ?? false,
   );
+
+  const { execute } = useApi();
 
   /**
    * Temporary local comments.
@@ -178,15 +182,7 @@ export default function PostCard({
   };
 
   const handleDelete = async () => {
-    const url = `${process.env.NEXT_PUBLIC_BASE_URL}/post/${post.id}`;
-    const res = await fetch(url, {
-      method: "DELETE",
-    });
-    const { message } = await res.json();
-
-    if (!res.ok) {
-      toast.error("Something went wrong!");
-    }
+    const { message } = await execute(() => deletePost(post.id));
 
     onDelete?.(post);
 
@@ -272,20 +268,20 @@ export default function PostCard({
 
         <CardHeader className="pb-1">
           <div className="flex items-start gap-3">
-            <Link href={`/account/${post.author.id}`} className="shrink-0">
-              <UserAvatar user={post.author} />
+            <Link href={`/account/${post?.author?.id}`} className="shrink-0">
+              <UserAvatar user={post?.author} />
             </Link>
 
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <Link
-                  href={`/account/${post.author.id}`}
+                  href={`/account/${post?.author?.id}`}
                   className="truncate text-sm font-semibold hover:underline"
                 >
-                  {post.author.name}
+                  {post?.author?.name}
                 </Link>
 
-                {post.author.verified && (
+                {post?.author?.verified && (
                   <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
                     <Check className="size-2.5" />
                   </span>
@@ -297,11 +293,11 @@ export default function PostCard({
               </div>
 
               <div className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
-                <span>@{post.author.handle}</span>
+                <span>@{post?.author?.handle}</span>
 
                 <span>·</span>
 
-                <span>{formatPostTime(post.created_at)}</span>
+                <span>{formatPostTime(post?.created_at)}</span>
 
                 {visibility && (
                   <>
@@ -405,10 +401,10 @@ export default function PostCard({
             <Carousel className="mt-4 w-full">
               <CarouselContent>
                 {post.images.map((image, index) => (
-                  <CarouselItem key={`${image}-${index}`}>
+                  <CarouselItem key={`${image.position}-${index}`}>
                     <div className="flex h-150 w-full items-center justify-center overflow-hidden rounded-xl bg-muted">
                       <img
-                        src={image}
+                        src={image.url}
                         alt={`Post image ${index + 1}`}
                         className="max-h-full max-w-full object-center"
                       />
@@ -561,9 +557,9 @@ export default function PostCard({
       <PostCommentsSheet
         open={showComments}
         onOpenChange={setShowComments}
-        postId={post.id}
-        ownPost={post.author.id == authUser?.id}
-        commentCount={post.comments ?? 0}
+        postId={post?.id}
+        ownPost={post?.author?.id == authUser?.id}
+        commentCount={post?.comments ?? 0}
       />
     </>
   );

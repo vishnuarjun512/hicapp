@@ -7,7 +7,7 @@ export type User = {
   id: string;
   name: string;
   email: string;
-  profile_pic_url?: string;
+  profile_pic_url: string;
   handle: string;
   verified?: boolean;
   bio: string;

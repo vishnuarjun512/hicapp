@@ -64,11 +64,17 @@ export const users: User[] = [
   },
 ];
 
+type PostImage = {
+  id: string;
+  url: string;
+  position: number;
+};
+
 export type Post = {
   id: string;
   author: User;
   body: string;
-  images: string[];
+  images: PostImage[];
   likes: number;
   comments: number;
   shares?: number;
@@ -79,51 +85,6 @@ export type Post = {
   location?: string | null;
 };
 
-export const posts: Post[] = [
-  {
-    id: "post-1",
-    author: currentUser,
-    body: "A quiet reminder: the best ideas usually arrive after you stop trying to force them. Make a little space today.",
-    images: [],
-    likes: 284,
-    comments: 32,
-    shares: 8,
-    created_at: "12 min",
-    liked: true,
-    saved: false,
-    visibility: "public",
-  },
-  {
-    id: "post-2",
-    author: users[0],
-    body: "Spent the morning walking through the city with no destination. Turns out that is still a pretty good way to find one.",
-    images: [
-      "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
-    ],
-    likes: 184,
-    comments: 18,
-    shares: 12,
-    created_at: "1 hr",
-    liked: false,
-    saved: false,
-    visibility: "public",
-  },
-  {
-    id: "post-3",
-    author: users[1],
-    body: "What is a small ritual that makes your day feel more like yours? Mine is reading ten pages before opening any apps.",
-    images: [],
-    likes: 96,
-    comments: 41,
-    shares: 4,
-    created_at: "3 hr",
-    liked: false,
-    saved: false,
-    visibility: "public",
-  },
-];
 export const suggestions = users.slice(1, 4);
 export const friendRequests = [users[2], users[3]];
 
@@ -164,5 +125,3 @@ export const navItems = [
 
 export const formatNumber = (value: number) =>
   value > 999 ? `${(value / 1000).toFixed(1)}k` : value.toString();
-export const clonePosts = () =>
-  posts.map((post) => ({ ...post, author: { ...post.author } }));

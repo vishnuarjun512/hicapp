@@ -22,7 +22,11 @@ import { ProfileImageSection } from "./(edit-profile)/profile-image-section";
 import { ProfileCompletionSection } from "./(edit-profile)/profile-completion-section";
 import { ProfileFormFields } from "./(edit-profile)/profile-form-fields";
 import { useApi } from "@/lib/(apiCalls)/useApi";
-import { updateProfileData } from "@/lib/(apiCalls)/user/user";
+import {
+  getProfileImageUploadUrl,
+  updateProfileData,
+} from "@/lib/(apiCalls)/user/user";
+import { uploadFileToS3 } from "@/lib/(apiCalls)/s3/uploadFileToS3";
 
 const MAX_BIO_LENGTH = 160;
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -155,6 +159,64 @@ export default function EditProfile({ trigger }: EditProfileProps) {
     return true;
   };
 
+  // const handleSaveChanges = async () => {
+  //   if (!user) {
+  //     toast.error("User not found.");
+  //     return;
+  //   }
+
+  //   if (!validateForm()) return;
+
+  //   setSaving(true);
+
+  //   try {
+  //     const formData = new FormData();
+  //     formData.append("name", name.trim());
+  //     formData.append("handle", handle.trim());
+  //     formData.append("bio", bio.trim());
+
+  //     if (selectedImage) {
+  //       formData.append("profilePic", selectedImage);
+  //     }
+
+  //     if (removeProfileImage) {
+  //       formData.append("removeProfileImage", "true");
+  //     }
+
+  //     const form = {
+  //       name: formData.get("name"),
+  //       handle: formData.get("handle"),
+  //       bio: formData.get("bio"),
+  //       verified: name == "" && handle == "" ? false : true,
+  //     };
+
+  //     const data = await execute(() => updateProfileData(user.id, form));
+
+  //     if (!data.error) {
+  //       setUser({
+  //         ...user,
+  //         name: name.trim(),
+  //         handle: handle.trim(),
+  //         bio: bio.trim(),
+  //         profile_pic_url: removeProfileImage
+  //           ? undefined
+  //           : (profileImage ?? user.profile_pic_url),
+  //         verified: name == "" && handle == "" ? false : true,
+  //       });
+
+  //       toast.success("Profile updated successfully!");
+  //       return;
+  //     }
+  //   } catch (error) {
+  //     console.error("Error saving profile changes:", error);
+  //     toast.error(
+  //       error instanceof Error ? error.message : "Failed to update profile.",
+  //     );
+  //   } finally {
+  //     setSaving(false);
+  //   }
+  // };
+
   const handleSaveChanges = async () => {
     if (!user) {
       toast.error("User not found.");
@@ -166,53 +228,78 @@ export default function EditProfile({ trigger }: EditProfileProps) {
     setSaving(true);
 
     try {
-      const formData = new FormData();
-      formData.append("name", name.trim());
-      formData.append("handle", handle.trim());
-      formData.append("bio", bio.trim());
+      let profilePicUrl = user.profile_pic_url ?? null;
 
+      /*
+       * 1. Upload new profile image if one was selected
+       */
       if (selectedImage) {
-        formData.append("profilePic", selectedImage);
+        toast.loading("Uploading profile image...", {
+          id: "profile-upload",
+        });
+
+        const uploadData = await getProfileImageUploadUrl(selectedImage.type);
+
+        await uploadFileToS3(uploadData.uploadUrl, selectedImage);
+
+        profilePicUrl = uploadData.fileUrl;
+
+        toast.success("Profile image uploaded", {
+          id: "profile-upload",
+        });
       }
 
+      /*
+       * 2. Remove profile image
+       */
       if (removeProfileImage) {
-        formData.append("removeProfileImage", "true");
+        profilePicUrl = null;
       }
 
+      /*
+       * 3. Update profile in your backend
+       */
       const form = {
-        name: formData.get("name"),
-        handle: formData.get("handle"),
-        bio: formData.get("bio"),
-        verified: name == "" && handle == "" ? false : true,
+        name: name.trim(),
+        handle: handle.trim(),
+        bio: bio.trim(),
+        profilePicUrl,
+        verified: name.trim() !== "" && handle.trim() !== "",
       };
 
       const data = await execute(() => updateProfileData(user.id, form));
 
-      if (!data.error) {
-        setUser({
-          ...user,
-          name: name.trim(),
-          handle: handle.trim(),
-          bio: bio.trim(),
-          profile_pic_url: removeProfileImage
-            ? undefined
-            : (profileImage ?? user.profile_pic_url),
-          verified: name == "" && handle == "" ? false : true,
-        });
-
-        toast.success("Profile updated successfully!");
-        return;
+      if (data.error) {
+        throw new Error(data.message || "Failed to update profile.");
       }
+
+      /*
+       * 4. Update local Zustand state
+       */
+
+      setUser({
+        ...user,
+        name: name.trim(),
+        handle: handle.trim(),
+        bio: bio.trim(),
+        profile_pic_url: profilePicUrl,
+        verified: name.trim() !== "" && handle.trim() !== "",
+      });
+
+      toast.success("Profile updated successfully!");
+
+      setOpen(false);
     } catch (error) {
       console.error("Error saving profile changes:", error);
+
       toast.error(
         error instanceof Error ? error.message : "Failed to update profile.",
       );
     } finally {
+      toast.dismiss("profile-upload");
       setSaving(false);
     }
   };
-
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen && hasChanges && !saving) {
       const shouldClose = window.confirm(

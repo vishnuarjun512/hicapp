@@ -10,7 +10,7 @@ export default function UserAvatar({
 }) {
   return (
     <Avatar className={size}>
-      <AvatarImage src={user.profile_pic_url} alt={`${user.name} avatar`} />
+      <AvatarImage src={user?.profile_pic_url} alt={`${user?.name} avatar`} />
       <AvatarFallback>
         {user &&
           user.name &&

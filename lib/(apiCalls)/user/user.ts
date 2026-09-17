@@ -36,3 +36,20 @@ export const updateProfileData = async (userId: string, form: object) => {
     console.log("Profile Update Request Failed -> ", error);
   }
 };
+
+export const getProfileImageUploadUrl = async (contentType: string) => {
+  const response = await apiFetch(`/user/profilePic`, {
+    method: "POST",
+    body: JSON.stringify({
+      contentType,
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to generate upload URL");
+  }
+
+  return data;
+};

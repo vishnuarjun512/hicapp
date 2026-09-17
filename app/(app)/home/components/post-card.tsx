@@ -131,7 +131,7 @@ export default function PostCard({
 
   const hasImages = images.length > 0;
 
-  const currentImage = images[imageIndex];
+  const currentImage = images[imageIndex].url;
 
   const handleLike = async (postId: string) => {
     post.liked ? await unlikePost(postId) : await likePost(postId);

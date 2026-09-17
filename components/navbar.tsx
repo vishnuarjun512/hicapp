@@ -1,6 +1,6 @@
 "use client";
 import { currentUser, navItems, users } from "@/lib/social-data";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -31,6 +31,9 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 
+import { useMessageStore } from "@/lib/stores/message-store";
+import { useAuthStore } from "@/lib/stores/auth-store";
+
 export default function Navbar() {
   const iconMap = {
     home: Home,
@@ -51,6 +54,19 @@ export default function Navbar() {
       ),
     [search],
   );
+
+  const { user } = useAuthStore();
+  const { conversations } = useMessageStore();
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+
+  useEffect(() => {
+    setUnreadMessageCount(
+      conversations.reduce((accumulator, conversation) => {
+        return accumulator + conversation.unread;
+      }, 0),
+    );
+  }, [user?.id]);
+
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 lg:px-8">
@@ -126,11 +142,11 @@ export default function Navbar() {
           )}
         </div>
         <div className="flex items-center gap-1">
-          <Link href="/messages">
+          <Link href="/message">
             <Button variant="ghost" size="icon" aria-label="Messages">
               <MessageCircle />
               <Badge className="-ml-3 -mt-5 size-4 justify-center rounded-full p-0 text-[10px]">
-                2
+                {unreadMessageCount}
               </Badge>
             </Button>
           </Link>

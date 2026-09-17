@@ -9,11 +9,11 @@ import { useAuthStore } from "@/lib/stores/auth-store";
 import {
   getConversationMessages,
   getConversations,
-} from "@/app/(apiCalls)/message/message-api";
+} from "@/lib/(apiCalls)/message/message-api";
 
 import { Conversation } from "@/lib/types";
 
-import { useApi } from "@/app/(apiCalls)/useApi";
+import { useApi } from "@/lib/(apiCalls)/useApi";
 import { useMessageStore } from "@/lib/stores/message-store";
 import { useWebSocket } from "@/components/WebSocketProvider";
 import ConversationList from "./(components)/conversation-list";

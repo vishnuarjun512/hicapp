@@ -9,8 +9,8 @@ import ProfileHeader from "./profile-header";
 import { useAuthStore, User } from "@/lib/stores/auth-store";
 import { useEffect, useState } from "react";
 import { useDataStore } from "@/lib/stores/data-store";
-import { useApi } from "@/app/(apiCalls)/useApi";
-import { apiFetch } from "@/app/(apiCalls)/api";
+import { useApi } from "@/lib/(apiCalls)/useApi";
+import { apiFetch } from "@/lib/(apiCalls)/api";
 
 export default function ProfilePage({ user }: { user: User }) {
   const { user: authUser } = useAuthStore();

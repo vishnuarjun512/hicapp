@@ -1,5 +1,5 @@
 "use client";
-import { handleLogOut } from "@/app/(apiCalls)/auth/auth";
+import { handleLogOut } from "@/lib/(apiCalls)/auth/auth";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
 import { useAuthStore } from "@/lib/stores/auth-store";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 

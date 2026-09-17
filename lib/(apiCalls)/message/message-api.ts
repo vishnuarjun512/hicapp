@@ -1,5 +1,5 @@
 import { apiFetch } from "../api";
-import { Conversation, Message } from "../../../lib/types";
+import { Conversation, Message } from "../../types";
 
 export async function getConversations(userId: string) {
   const url = "/conversation";

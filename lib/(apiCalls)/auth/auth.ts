@@ -2,11 +2,9 @@ import { useAuthStore } from "@/lib/stores/auth-store";
 import { useDataStore } from "@/lib/stores/data-store";
 import { useMessageStore } from "@/lib/stores/message-store";
 
-const API_URL = "http://localhost:4000";
-
 export const handleLogOut = async () => {
   try {
-    await fetch(`${API_URL}/api/auth/logout`, {
+    await fetch(`/api/logout`, {
       method: "GET",
       credentials: "include",
     });

@@ -11,9 +11,9 @@ import { toast } from "sonner";
 import UserList from "@/components/user-list";
 import { useAuthStore, User } from "@/lib/stores/auth-store";
 import { useDataStore } from "@/lib/stores/data-store";
-import { useApi } from "@/app/(apiCalls)/useApi";
-import { apiFetch } from "@/app/(apiCalls)/api";
-import { getFriendsApiCall } from "@/app/(apiCalls)/friends/friends";
+import { useApi } from "@/lib/(apiCalls)/useApi";
+import { apiFetch } from "@/lib/(apiCalls)/api";
+import { getFriendsApiCall } from "@/lib/(apiCalls)/friends/friends";
 
 export default function FriendsPage() {
   const { user } = useAuthStore();

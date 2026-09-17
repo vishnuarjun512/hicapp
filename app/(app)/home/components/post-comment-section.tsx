@@ -23,8 +23,8 @@ import {
   deleteComment,
   getComments,
   updateComment,
-} from "@/app/(apiCalls)/post/comment";
-import { useApi } from "@/app/(apiCalls)/useApi";
+} from "@/lib/(apiCalls)/post/comment";
+import { useApi } from "@/lib/(apiCalls)/useApi";
 import { useDataStore } from "@/lib/stores/data-store";
 import {
   DropdownMenu,
@@ -40,6 +40,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { formatPostTime } from "@/lib/utils";
 
 type PostCommentsSheetProps = {
   open: boolean;
@@ -239,7 +240,10 @@ export default function PostCommentsSheet({
                               </span>
 
                               <span className="text-[11px] text-muted-foreground">
-                                {item.time}
+                                {new Date(item.updated_at).getTime() !==
+                                new Date(item.created_at).getTime()
+                                  ? `Edited · ${formatPostTime(item.updated_at)}`
+                                  : formatPostTime(item.created_at)}
                               </span>
                             </div>
 

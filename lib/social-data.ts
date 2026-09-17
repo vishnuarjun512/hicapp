@@ -149,6 +149,8 @@ export type Comment = {
   author: User;
   comment: string;
   time: string;
+  created_at: string;
+  updated_at: string;
 };
 
 export const navItems = [

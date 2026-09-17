@@ -17,8 +17,8 @@ import {
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useDataStore } from "@/lib/stores/data-store";
 import { useMessageStore } from "@/lib/stores/message-store";
-import { useApi } from "@/app/(apiCalls)/useApi";
-import { getProfileData } from "@/app/(apiCalls)/user/user";
+import { useApi } from "@/lib/(apiCalls)/useApi";
+import { getProfileData } from "@/lib/(apiCalls)/user/user";
 
 export default function Page() {
   const { user } = useAuthStore();

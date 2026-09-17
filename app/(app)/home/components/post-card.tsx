@@ -71,9 +71,11 @@ import {
 import UserAvatar from "@/components/user-avatar";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { formatPostTime } from "@/lib/utils";
-import { likePost, unlikePost } from "@/app/(apiCalls)/post/like";
+import { likePost, unlikePost } from "@/lib/(apiCalls)/post/like";
 
 import PostCommentsSheet from "./post-comment-section";
+import { DeletePostConfirmationDialog } from "./delete-post-dialog-confirmation";
+import { EditPostDialog } from "./edit-post-dialog";
 
 type PostCardProps = {
   post: Post;
@@ -99,6 +101,7 @@ export default function PostCard({
   const [showImagePreview, setShowImagePreview] = useState(false);
 
   const [editing, setEditing] = useState(false);
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -345,7 +348,12 @@ export default function PostCard({
                   {pinned ? "Unpin post" : "Pin post"}
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={() => setEditing(true)}>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setEditing(true);
+                    setEditingPost(post);
+                  }}
+                >
                   <Edit3 />
                   Edit post
                 </DropdownMenuItem>
@@ -531,97 +539,24 @@ export default function PostCard({
       {/* EDIT POST                                          */}
       {/* ================================================== */}
 
-      <Dialog open={editing} onOpenChange={setEditing}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Edit post</DialogTitle>
-
-            <DialogDescription>
-              Update your post content and visibility.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-5 py-2">
-            <Textarea
-              value={editBody}
-              onChange={(event) => setEditBody(event.target.value)}
-              placeholder="What's on your mind?"
-              className="min-h-32 resize-none"
-              maxLength={5000}
-            />
-
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">
-                {editBody.length}/5000
-              </span>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium">Visibility</label>
-
-              <Select
-                value={visibility}
-                onValueChange={(value) => {
-                  if (value) {
-                    setVisibility(value);
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select visibility" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="public">Public</SelectItem>
-
-                  <SelectItem value="friends">Friends</SelectItem>
-
-                  <SelectItem value="only-me">Only me</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditing(false)}>
-              Cancel
-            </Button>
-
-            <Button onClick={handleEdit}>Save changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {editingPost && editing && (
+        <EditPostDialog
+          onConfirm={handleEdit}
+          onOpenChange={setEditing}
+          open={editing}
+          post={editingPost}
+        />
+      )}
 
       {/* ================================================== */}
       {/* DELETE CONFIRMATION                                */}
       {/* ================================================== */}
 
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Delete post?</DialogTitle>
-
-            <DialogDescription>
-              This action cannot be undone. Your post will be permanently
-              removed.
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-
-            <Button variant="destructive" onClick={handleDelete}>
-              <Trash2 data-icon="inline-start" />
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeletePostConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDelete}
+      />
 
       <PostCommentsSheet
         open={showComments}

@@ -71,6 +71,9 @@ import {
 import UserAvatar from "@/components/user-avatar";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { formatPostTime } from "@/lib/utils";
+import { likePost, unlikePost } from "@/app/(apiCalls)/post/like";
+
+import PostCommentsSheet from "./post-comment-section";
 
 type PostCardProps = {
   post: Post;
@@ -90,8 +93,6 @@ export default function PostCard({
   onComment,
 }: PostCardProps) {
   const [showComments, setShowComments] = useState(false);
-
-  const [comment, setComment] = useState("");
 
   const [imageIndex, setImageIndex] = useState(0);
 
@@ -118,7 +119,6 @@ export default function PostCard({
    *
    * Eventually these should come from your backend.
    */
-  const [comments, setComments] = useState<Comment[]>([]);
 
   const images = post.images ?? [];
 
@@ -126,11 +126,13 @@ export default function PostCard({
 
   const currentImage = images[imageIndex];
 
-  const handleLike = () => {
+  const handleLike = async (postId: string) => {
+    post.liked ? await unlikePost(postId) : await likePost(postId);
+
     onChange({
       ...post,
       liked: !post.liked,
-      likes: post.likes ? post.likes + (post.liked ? -1 : 1) : 0,
+      likes: post.liked ? post.likes - 1 : post.likes + 1,
     });
   };
 
@@ -144,37 +146,6 @@ export default function PostCard({
   };
 
   const authUser = useAuthStore((state) => state.user);
-
-  const handleSubmitComment = () => {
-    const trimmedComment = comment.trim();
-
-    if (!trimmedComment) return;
-
-    if (!authUser) {
-      toast.error("You must be logged in to comment");
-      return;
-    }
-
-    const newComment: Comment = {
-      id: crypto.randomUUID(),
-      author: authUser,
-      body: trimmedComment,
-      time: "now",
-    };
-
-    setComments((current) => [...current, newComment]);
-
-    onChange({
-      ...post,
-      comments: post?.comments ? post.comments + 1 : 0,
-    });
-
-    onComment?.(post, trimmedComment);
-
-    setComment("");
-
-    toast.success("Comment added");
-  };
 
   const handleEdit = () => {
     const trimmedBody = editBody.trim();
@@ -459,11 +430,11 @@ export default function PostCard({
             <Button
               variant="ghost"
               size="sm"
-              className={post.liked ? "text-destructive" : ""}
-              onClick={handleLike}
+              className={post?.liked ? "text-destructive" : ""}
+              onClick={() => handleLike(post.id)}
             >
               <Heart
-                fill={post.liked ? "currentColor" : "none"}
+                fill={post?.liked ? "currentColor" : "none"}
                 data-icon="inline-start"
               />
 
@@ -475,10 +446,9 @@ export default function PostCard({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowComments((current) => !current)}
+              onClick={() => setShowComments(true)}
             >
               <MessageCircle data-icon="inline-start" />
-
               <span>{formatNumber(post?.comments ? post.comments : 0)}</span>
             </Button>
 
@@ -502,71 +472,6 @@ export default function PostCard({
               <Bookmark fill={post.saved ? "currentColor" : "none"} />
             </Button>
           </div>
-
-          {/* ------------------------------------------------ */}
-          {/* COMMENTS                                         */}
-          {/* ------------------------------------------------ */}
-
-          {showComments && (
-            <div className="w-full border-t pt-3">
-              {/* Existing comments */}
-
-              {comments.length > 0 && (
-                <div className="mb-4 space-y-3">
-                  {comments.map((item) => (
-                    <div key={item.id} className="flex gap-2">
-                      <UserAvatar user={item.author} size="size-8" />
-
-                      <div className="min-w-0 flex-1 rounded-xl bg-muted px-3 py-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold">
-                            {item.author.name}
-                          </span>
-
-                          <span className="text-[10px] text-muted-foreground">
-                            {item.time}
-                          </span>
-                        </div>
-
-                        <p className="mt-0.5 text-sm">{item.body}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Comment input */}
-
-              <div className="flex items-end gap-2">
-                <Textarea
-                  value={comment}
-                  onChange={(event) => setComment(event.target.value)}
-                  placeholder="Write a comment..."
-                  className="min-h-10 resize-none"
-                  rows={1}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" && !event.shiftKey) {
-                      event.preventDefault();
-                      handleSubmitComment();
-                    }
-                  }}
-                />
-
-                <Button
-                  size="icon"
-                  disabled={!comment.trim()}
-                  onClick={handleSubmitComment}
-                  aria-label="Send comment"
-                >
-                  <Send />
-                </Button>
-              </div>
-
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Press Enter to comment · Shift + Enter for a new line
-              </p>
-            </div>
-          )}
         </CardFooter>
       </Card>
 
@@ -717,6 +622,14 @@ export default function PostCard({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <PostCommentsSheet
+        open={showComments}
+        onOpenChange={setShowComments}
+        postId={post.id}
+        ownPost={post.author.id == authUser?.id}
+        commentCount={post.comments ?? 0}
+      />
     </>
   );
 }

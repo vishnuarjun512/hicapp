@@ -17,7 +17,6 @@ export function SettingsPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const router = useRouter();
 
   useEffect(() => {
     if (user?.email) {

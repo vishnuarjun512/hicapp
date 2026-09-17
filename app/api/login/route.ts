@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 5,
+      maxAge: 60 * 10,
     });
 
     response.cookies.set("hicappRefreshToken", data.refreshToken, {
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 10,
+      maxAge: 60 * 20,
     });
 
     return response;

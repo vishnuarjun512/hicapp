@@ -69,8 +69,8 @@ export type Post = {
   author: User;
   body: string;
   images: string[];
-  likes?: number;
-  comments?: number;
+  likes: number;
+  comments: number;
   shares?: number;
   liked?: boolean;
   saved?: boolean;
@@ -147,7 +147,7 @@ export const conversations = [
 export type Comment = {
   id: string;
   author: User;
-  body: string;
+  comment: string;
   time: string;
 };
 

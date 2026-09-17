@@ -21,11 +21,9 @@ import { useApi } from "@/app/(apiCalls)/useApi";
 import { getProfileData } from "@/app/(apiCalls)/user/user";
 
 export default function Page() {
-  const [feed, setFeed] = useState<Post[]>([]);
-
   const { user } = useAuthStore();
 
-  const { setPosts, setFollowers, setFollowing, setSuggestions } =
+  const { posts, setPosts, setFollowers, setFollowing, setSuggestions } =
     useDataStore();
   const { setConversations } = useMessageStore();
   const { execute } = useApi();
@@ -41,14 +39,13 @@ export default function Page() {
         setFollowers(data.followers);
         setFollowing(data.following);
         setConversations(data.conversations);
-        setFeed(data.posts);
       } catch (error) {
         console.log("Profile Fetch Request Failed -> ", error);
       }
     };
 
     getUserData();
-  }, []);
+  }, [user?.id]);
 
   return (
     <AppShell>
@@ -79,28 +76,26 @@ export default function Page() {
         <div className="flex flex-col gap-4">
           <CreatePost
             onCreate={(newPost) => {
-              setFeed((currentFeed) => [newPost, ...currentFeed]);
+              setPosts([newPost, ...posts]);
             }}
           />
-          {feed.map((post) => (
+          {posts.map((post) => (
             <PostCard
               key={post.id}
               post={post}
               onChange={(updatedPost) => {
-                setFeed((currentFeed) =>
-                  currentFeed.map((item) =>
+                setPosts(
+                  posts.map((item: Post) =>
                     item.id === updatedPost.id ? updatedPost : item,
                   ),
                 );
               }}
               onDelete={(deletedPost) => {
-                setFeed((currentFeed) =>
-                  currentFeed.filter((item) => item.id !== deletedPost.id),
-                );
+                setPosts(posts.filter((item) => item.id !== deletedPost.id));
               }}
               onEdit={(updatedPost) => {
-                setFeed((currentFeed) =>
-                  currentFeed.map((item) =>
+                setPosts(
+                  posts.map((item) =>
                     item.id === updatedPost.id ? updatedPost : item,
                   ),
                 );

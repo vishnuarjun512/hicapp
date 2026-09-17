@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { useDataStore } from "@/lib/stores/data-store";
 import { useApi } from "@/lib/(apiCalls)/useApi";
 import { apiFetch } from "@/lib/(apiCalls)/api";
+import { getProfileData } from "@/lib/(apiCalls)/user/user";
 
 export default function ProfilePage({ user }: { user: User }) {
   const { user: authUser } = useAuthStore();
@@ -26,18 +27,9 @@ export default function ProfilePage({ user }: { user: User }) {
   useEffect(() => {
     if (!user?.id) return;
 
-    const getProfileData = async () => {
+    const fetchProfileData = async () => {
       try {
-        const response = await apiFetch(`/profile/${user.id}`, {
-          method: "GET",
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to fetch posts");
-        }
-
+        const data = await execute(() => getProfileData(user.id));
         setPagePosts(data.posts);
         setPageFollowers(data.followers);
         setPageFollowing(data.following);
@@ -48,7 +40,7 @@ export default function ProfilePage({ user }: { user: User }) {
 
     if (authUser?.id != user.id) {
       setOwn(false);
-      execute(() => getProfileData());
+      fetchProfileData();
     } else {
       setOwn(true);
       setPagePosts(posts);

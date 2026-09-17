@@ -21,6 +21,8 @@ import { EditProfilePreview } from "./(edit-profile)/edit-profile-preview";
 import { ProfileImageSection } from "./(edit-profile)/profile-image-section";
 import { ProfileCompletionSection } from "./(edit-profile)/profile-completion-section";
 import { ProfileFormFields } from "./(edit-profile)/profile-form-fields";
+import { useApi } from "@/lib/(apiCalls)/useApi";
+import { updateProfileData } from "@/lib/(apiCalls)/user/user";
 
 const MAX_BIO_LENGTH = 160;
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -43,6 +45,8 @@ export default function EditProfile({ trigger }: EditProfileProps) {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [removeProfileImage, setRemoveProfileImage] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const { execute } = useApi();
 
   // Synchronize form state whenever the dialog opens or user state updates
   useEffect(() => {
@@ -170,40 +174,21 @@ export default function EditProfile({ trigger }: EditProfileProps) {
       if (selectedImage) {
         formData.append("profilePic", selectedImage);
       }
+
       if (removeProfileImage) {
         formData.append("removeProfileImage", "true");
       }
 
-      const url = `${process.env.NEXT_PUBLIC_BASE_URL}/user/edit-profile/${user.id}`;
-      const response = await fetch(url, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.get("name"),
-          handle: formData.get("handle"),
-          bio: formData.get("bio"),
-          verified: name == "" && handle == "" ? false : true,
-        }),
-      });
+      const form = {
+        name: formData.get("name"),
+        handle: formData.get("handle"),
+        bio: formData.get("bio"),
+        verified: name == "" && handle == "" ? false : true,
+      };
 
-      // Safe JSON parsing to prevent unhandled crash on non-200 non-JSON server responses
-      let data: { message?: string; user?: typeof user } = {};
-      try {
-        data = await response.json();
-      } catch {
-        throw new Error("Server responded with an invalid response.");
-      }
+      const data = await execute(() => updateProfileData(user.id, form));
 
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to update profile.");
-      }
-
-      const updatedUser = data.user;
-      if (updatedUser) {
-        setUser(updatedUser);
-      } else {
+      if (!data.error) {
         setUser({
           ...user,
           name: name.trim(),
@@ -214,10 +199,10 @@ export default function EditProfile({ trigger }: EditProfileProps) {
             : (profileImage ?? user.profile_pic_url),
           verified: name == "" && handle == "" ? false : true,
         });
-      }
 
-      toast.success("Profile updated successfully!");
-      setOpen(false);
+        toast.success("Profile updated successfully!");
+        return;
+      }
     } catch (error) {
       console.error("Error saving profile changes:", error);
       toast.error(

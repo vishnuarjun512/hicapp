@@ -22,6 +22,7 @@ import {
   createComment,
   deleteComment,
   getComments,
+  updateComment,
 } from "@/app/(apiCalls)/post/comment";
 import { useApi } from "@/app/(apiCalls)/useApi";
 import { useDataStore } from "@/lib/stores/data-store";
@@ -128,6 +129,29 @@ export default function PostCommentsSheet({
     setEditCommentText(comment.comment);
   };
 
+  const handleUpdateComment = async () => {
+    if (!editingComment) return;
+
+    try {
+      const data = await execute(() =>
+        updateComment(editingComment.id, editCommentText),
+      );
+
+      const { updatedComment } = data;
+
+      setComments(
+        comments.map((comment) =>
+          comment.id == editingComment?.id ? updatedComment : comment,
+        ),
+      );
+    } catch (error) {
+      console.error("Failed to delete comment:", error);
+    } finally {
+      setEditingComment(null);
+      setEditCommentText("");
+    }
+  };
+
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(
     null,
   );
@@ -135,8 +159,6 @@ export default function PostCommentsSheet({
   const handleDeleteComment = (commentId: string) => {
     setDeletingCommentId(commentId);
   };
-
-  const handleUpdateComment = () => {};
 
   const handleConfirmDeleteComment = async () => {
     if (!deletingCommentId) return;

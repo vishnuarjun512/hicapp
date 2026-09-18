@@ -10,12 +10,12 @@ export const createPost = async (payload: object, userId: string) => {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || "Failed to Create Comment");
+      throw new Error(data.message || "Failed to Create Post");
     }
 
     return data;
   } catch (error) {
-    console.log("Create Comment Request Failed -> ", error);
+    console.log("Create Post Request Failed -> ", error);
   }
 };
 

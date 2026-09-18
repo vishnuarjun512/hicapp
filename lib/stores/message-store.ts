@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { Conversation, Message } from "../types";
+import { useAuthStore } from "./auth-store";
 
 type MessageState = {
   conversations: Conversation[];
@@ -85,12 +86,18 @@ export const useMessageStore = create<MessageState>()(
           const existingMessages =
             state.messagesByConversation[conversationId] ?? [];
 
-          // Prevent duplicate messages.
+          // Prevent duplicate messages
           if (existingMessages.some((item) => item.id === message.id)) {
             return state;
           }
 
+          const currentUserId = useAuthStore.getState().user?.id;
+
+          const isOwnMessage = message.sender.id === currentUserId;
+
           const isActive = state.activeConversationId === conversationId;
+
+          const shouldIncreaseUnread = !isOwnMessage && !isActive;
 
           return {
             messagesByConversation: {
@@ -108,9 +115,9 @@ export const useMessageStore = create<MessageState>()(
 
                     lastMessageAt: message.createdAt,
 
-                    unread: isActive
-                      ? conversation.unread
-                      : conversation.unread + 1,
+                    unread: shouldIncreaseUnread
+                      ? conversation.unread + 1
+                      : conversation.unread,
                   }
                 : conversation,
             ),

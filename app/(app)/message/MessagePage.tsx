@@ -119,7 +119,7 @@ export default function MessagesPage() {
     try {
       // const newMessage = await sendMessage(selectedConversation.id, content);
       sendMessageWs({
-        type: "message:send",
+        type: "message:frontend->backend",
         conversationId: selectedConversation.id,
         content,
       });

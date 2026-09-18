@@ -27,11 +27,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
   const [connected, setConnected] = useState(false);
 
-  const receivedMessage = useMessageStore((state) => state.receivedMessage);
-
-  const updateParticipantReadState = useMessageStore(
-    (state) => state.updateParticipantReadState,
-  );
+  const { receivedMessage, updateParticipantReadState } = useMessageStore();
 
   useEffect(() => {
     const socket = new WebSocket("ws://localhost:4000");
@@ -54,7 +50,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
         // NEW MESSAGE
         // =========================================
 
-        if (data.type === "message:new") {
+        if (data.type === "message:backend->frontend") {
           const message = data.message;
 
           receivedMessage(message.conversationId, message);

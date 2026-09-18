@@ -8,9 +8,9 @@ import { cn } from "@/lib/utils";
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "Kindred — A calmer social network",
+  title: "Hicapp — A calmer social network",
   description:
-    "Share small moments, find curious minds, and stay close to your people on Kindred.",
+    "Share small moments, find curious minds, and stay close to your people on Hicapp.",
   generator: "v0.app",
   icons: {
     icon: [

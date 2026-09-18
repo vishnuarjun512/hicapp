@@ -38,7 +38,7 @@ export function LandingPage() {
               Stay close to the people who make life richer.
             </h1>
             <p className="mt-6 max-w-lg text-lg leading-8 text-muted-foreground">
-              Kindred is a thoughtful place to share small moments, follow
+              Hicapp is a thoughtful place to share small moments, follow
               curious minds, and have conversations that stay human.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -57,7 +57,7 @@ export function LandingPage() {
                   <UserAvatar key={user.handle} user={user} size="size-8" />
                 ))}
               </div>
-              <span>Join 12,000+ kindred spirits</span>
+              <span>Join 12,000+ hicapp spirits</span>
             </div>
           </div>
           <div className="relative">
@@ -153,7 +153,7 @@ export function LandingPage() {
           <Link href="#">Terms</Link>
           <Link href="#">Contact</Link>
         </div>
-        <span>© 2026 Kindred</span>
+        <span>© 2026 Hicapp</span>
       </footer>
     </div>
   );

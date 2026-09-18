@@ -91,11 +91,11 @@ export function AuthPage({ register = false }: { register?: boolean }) {
           </p>
 
           <p className="mt-5 max-w-md leading-7 opacity-80">
-            Less noise, more meaning. Welcome to Kindred.
+            Less noise, more meaning. Welcome to Hicapp.
           </p>
         </div>
 
-        <p className="text-sm opacity-70">© 2026 Kindred</p>
+        <p className="text-sm opacity-70">© 2026 Hicapp</p>
       </div>
 
       <div className="flex items-center justify-center p-6">
@@ -158,7 +158,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            {register ? "Already have an account?" : "New to Kindred?"}{" "}
+            {register ? "Already have an account?" : "New to Hicapp?"}{" "}
             <Link
               className="font-medium text-primary hover:underline"
               href={register ? "/login" : "/register"}

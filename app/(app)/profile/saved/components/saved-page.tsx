@@ -1,5 +1,5 @@
 "use client";
-import { posts } from "@/lib/social-data";
+
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Bookmark, ChevronDown } from "lucide-react";
 import PostCard from "@/app/(app)/home/components/post-card";
+import { useDataStore } from "@/lib/stores/data-store";
 
 export function SavedPage() {
+  const { posts } = useDataStore();
   const saved = posts.filter((post) => post.saved);
   return (
     <AppShell>

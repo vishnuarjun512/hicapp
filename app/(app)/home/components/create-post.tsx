@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AtSign,
   Globe2,
@@ -72,6 +72,7 @@ export default function CreatePost({ onCreate }: CreatePostProps) {
 
   const [isDragging, setIsDragging] = useState(false);
   const { execute } = useApi();
+  const [loading, setLoading] = useState(false);
 
   /*
    * --------------------------------------------------
@@ -186,7 +187,7 @@ export default function CreatePost({ onCreate }: CreatePostProps) {
     if (!user) {
       return;
     }
-
+    setLoading(true);
     try {
       // --------------------------------------------------
       // 1. CREATE THE POST
@@ -256,6 +257,8 @@ export default function CreatePost({ onCreate }: CreatePostProps) {
       toast.error(
         error instanceof Error ? error.message : "Failed to create post",
       );
+    } finally {
+      setLoading(false);
     }
   }; /*
    * --------------------------------------------------
@@ -282,7 +285,15 @@ export default function CreatePost({ onCreate }: CreatePostProps) {
 
   const VisibilityIcon = visibilityOptions[visibility].icon;
 
-  const canPost = content.trim().length > 0 || images.length > 0;
+  const [canPost, setCanPost] = useState(false);
+
+  useEffect(() => {
+    if (content.trim().length > 0 || images.length > 0) {
+      setCanPost(true);
+    } else {
+      setCanPost(false);
+    }
+  }, [content, images]);
 
   /*
    * --------------------------------------------------
@@ -293,6 +304,7 @@ export default function CreatePost({ onCreate }: CreatePostProps) {
   if (!user) {
     return null;
   }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {/* --------------------------------------------- */}
@@ -354,283 +366,288 @@ export default function CreatePost({ onCreate }: CreatePostProps) {
         </DialogHeader>
 
         {/* ------------------------------------------- */}
-        {/* USER                                        */}
+        {/* DIALOG MAIN CONTENT                         */}
         {/* ------------------------------------------- */}
+        <div className="w-full overflow-y-auto">
+          {/* ------------------------------------------- */}
+          {/* USER                                        */}
+          {/* ------------------------------------------- */}
 
-        <div className="flex items-center gap-3">
-          <UserAvatar user={user} size="size-11" />
+          <div className="flex items-center gap-3">
+            <UserAvatar user={user} size="size-11" />
+
+            <div>
+              <p className="font-medium">{user?.name || "Your name"}</p>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-1 h-7 gap-1.5 px-2 text-xs"
+                onClick={() => {
+                  if (visibility === "public") {
+                    setVisibility("friends");
+                  } else if (visibility === "friends") {
+                    setVisibility("only-me");
+                  } else {
+                    setVisibility("public");
+                  }
+                }}
+              >
+                <VisibilityIcon className="size-3.5" />
+
+                {visibilityOptions[visibility].label}
+              </Button>
+            </div>
+          </div>
+
+          {/* ------------------------------------------- */}
+          {/* TEXT AREA                                   */}
+          {/* ------------------------------------------- */}
 
           <div>
-            <p className="font-medium">{user?.name || "Your name"}</p>
+            <Textarea
+              value={content}
+              onChange={(event) => {
+                const value = event.target.value;
+
+                if (value.length <= MAX_CHARACTERS) {
+                  setContent(value);
+                }
+              }}
+              placeholder="What's on your mind?"
+              className="min-h-40 resize-none border-0 px-0 text-base shadow-none focus-visible:ring-0"
+              autoFocus
+            />
+
+            <div className="flex items-center justify-between">
+              {/* Text tools */}
+
+              <div className="flex items-center">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8"
+                  title="Add hashtag"
+                  onClick={() => insertText("#")}
+                >
+                  <Hash />
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8"
+                  title="Mention someone"
+                  onClick={() => insertText("@")}
+                >
+                  <AtSign />
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8"
+                  title="Add emoji"
+                  onClick={() => insertText(" 😊")}
+                >
+                  <Smile />
+                </Button>
+              </div>
+
+              {/* Character count */}
+
+              <span className="text-xs text-muted-foreground">
+                {content.length}/{MAX_CHARACTERS}
+              </span>
+            </div>
+          </div>
+
+          {/* ------------------------------------------- */}
+          {/* IMAGE PREVIEWS                              */}
+          {/* ------------------------------------------- */}
+
+          {images.length > 0 && (
+            <div className="grid grid-cols-5 gap-1.5 mb-1">
+              {images.map((image) => (
+                <div
+                  key={image.id}
+                  className="group relative aspect-square overflow-hidden rounded-md bg-muted"
+                >
+                  <img
+                    src={image.preview}
+                    alt="Selected image"
+                    className="size-full object-cover"
+                  />
+
+                  {/* Remove image */}
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className="absolute right-1 top-1 size-6 rounded-full opacity-0 shadow transition-opacity group-hover:opacity-100"
+                    onClick={() => removeImage(image.id)}
+                    aria-label="Remove image"
+                  >
+                    <X className="size-3.5" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ------------------------------------------- */}
+          {/* IMAGE DROP AREA                             */}
+          {/* ------------------------------------------- */}
+
+          <div
+            onDragOver={(event) => {
+              event.preventDefault();
+              setIsDragging(true);
+            }}
+            onDragLeave={() => {
+              setIsDragging(false);
+            }}
+            onDrop={handleDrop}
+            className={`rounded-xl border border-dashed p-5 text-center transition-colors ${
+              isDragging ? "border-primary bg-primary/5" : "border-border"
+            }`}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(event) => {
+                if (event.target.files) {
+                  addImages(event.target.files);
+                }
+
+                event.target.value = "";
+              }}
+            />
+
+            <ImagePlus className="mx-auto size-7 text-muted-foreground" />
+
+            <p className="mt-2 text-sm font-medium">Add photos</p>
+
+            <p className="mt-1 text-xs text-muted-foreground">
+              Drag and drop images or choose them from your device.
+            </p>
 
             <Button
               type="button"
               variant="outline"
               size="sm"
-              className="mt-1 h-7 gap-1.5 px-2 text-xs"
-              onClick={() => {
-                if (visibility === "public") {
-                  setVisibility("friends");
-                } else if (visibility === "friends") {
-                  setVisibility("only-me");
-                } else {
-                  setVisibility("public");
-                }
-              }}
-            >
-              <VisibilityIcon className="size-3.5" />
-
-              {visibilityOptions[visibility].label}
-            </Button>
-          </div>
-        </div>
-
-        {/* ------------------------------------------- */}
-        {/* TEXT AREA                                   */}
-        {/* ------------------------------------------- */}
-
-        <div>
-          <Textarea
-            value={content}
-            onChange={(event) => {
-              const value = event.target.value;
-
-              if (value.length <= MAX_CHARACTERS) {
-                setContent(value);
-              }
-            }}
-            placeholder="What's on your mind?"
-            className="min-h-40 resize-none border-0 px-0 text-base shadow-none focus-visible:ring-0"
-            autoFocus
-          />
-
-          <div className="flex items-center justify-between">
-            {/* Text tools */}
-
-            <div className="flex items-center">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-8"
-                title="Add hashtag"
-                onClick={() => insertText("#")}
-              >
-                <Hash />
-              </Button>
-
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-8"
-                title="Mention someone"
-                onClick={() => insertText("@")}
-              >
-                <AtSign />
-              </Button>
-
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-8"
-                title="Add emoji"
-                onClick={() => insertText(" 😊")}
-              >
-                <Smile />
-              </Button>
-            </div>
-
-            {/* Character count */}
-
-            <span className="text-xs text-muted-foreground">
-              {content.length}/{MAX_CHARACTERS}
-            </span>
-          </div>
-        </div>
-
-        {/* ------------------------------------------- */}
-        {/* IMAGE PREVIEWS                              */}
-        {/* ------------------------------------------- */}
-
-        {images.length > 0 && (
-          <div className="grid grid-cols-5 gap-1.5">
-            {images.map((image) => (
-              <div
-                key={image.id}
-                className="group relative aspect-square overflow-hidden rounded-md bg-muted"
-              >
-                <img
-                  src={image.preview}
-                  alt="Selected image"
-                  className="size-full object-cover"
-                />
-
-                {/* Remove image */}
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="icon"
-                  className="absolute right-1 top-1 size-6 rounded-full opacity-0 shadow transition-opacity group-hover:opacity-100"
-                  onClick={() => removeImage(image.id)}
-                  aria-label="Remove image"
-                >
-                  <X className="size-3.5" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* ------------------------------------------- */}
-        {/* IMAGE DROP AREA                             */}
-        {/* ------------------------------------------- */}
-
-        <div
-          onDragOver={(event) => {
-            event.preventDefault();
-            setIsDragging(true);
-          }}
-          onDragLeave={() => {
-            setIsDragging(false);
-          }}
-          onDrop={handleDrop}
-          className={`rounded-xl border border-dashed p-5 text-center transition-colors ${
-            isDragging ? "border-primary bg-primary/5" : "border-border"
-          }`}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={(event) => {
-              if (event.target.files) {
-                addImages(event.target.files);
-              }
-
-              event.target.value = "";
-            }}
-          />
-
-          <ImagePlus className="mx-auto size-7 text-muted-foreground" />
-
-          <p className="mt-2 text-sm font-medium">Add photos</p>
-
-          <p className="mt-1 text-xs text-muted-foreground">
-            Drag and drop images or choose them from your device.
-          </p>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="mt-3"
-            onClick={() => {
-              fileInputRef.current?.click();
-            }}
-          >
-            Choose images
-          </Button>
-
-          <p className="mt-2 text-xs text-muted-foreground">
-            {images.length}/{MAX_IMAGES} images
-          </p>
-        </div>
-
-        {/* ------------------------------------------- */}
-        {/* EXTRA OPTIONS                               */}
-        {/* ------------------------------------------- */}
-
-        <div className="overflow-hidden rounded-xl border">
-          <div className="px-4 py-3">
-            <p className="text-sm font-medium">Add to your post</p>
-          </div>
-
-          <Separator />
-
-          <div className="grid grid-cols-2 sm:grid-cols-4">
-            <Button
-              type="button"
-              variant="ghost"
-              className="justify-start gap-2 rounded-none"
+              className="mt-3"
               onClick={() => {
                 fileInputRef.current?.click();
               }}
             >
-              <ImagePlus className="size-4 text-green-600" />
-              Photo
+              Choose images
             </Button>
 
-            <Button
-              type="button"
-              variant="ghost"
-              className="justify-start gap-2 rounded-none"
-              onClick={() => {
-                insertText(" 😊");
-              }}
-            >
-              <Smile className="size-4 text-yellow-500" />
-              Feeling
-            </Button>
-
-            <Button
-              type="button"
-              variant="ghost"
-              className="justify-start gap-2 rounded-none"
-              onClick={() => {
-                setShowLocation((current) => !current);
-              }}
-            >
-              <MapPin className="size-4 text-red-500" />
-              Location
-            </Button>
-
-            <Button
-              type="button"
-              variant="ghost"
-              className="justify-start gap-2 rounded-none"
-              onClick={() => {
-                insertText("@");
-              }}
-            >
-              <AtSign className="size-4 text-blue-500" />
-              Tag people
-            </Button>
+            <p className="mt-2 text-xs text-muted-foreground">
+              {images.length}/{MAX_IMAGES} images
+            </p>
           </div>
-        </div>
 
-        {/* ------------------------------------------- */}
-        {/* LOCATION                                    */}
-        {/* ------------------------------------------- */}
+          {/* ------------------------------------------- */}
+          {/* EXTRA OPTIONS                               */}
+          {/* ------------------------------------------- */}
 
-        {showLocation && (
-          <div className="flex items-center gap-2">
-            <MapPin className="size-4 text-muted-foreground" />
+          <div className="overflow-hidden rounded-xl border">
+            <div className="px-4 py-3">
+              <p className="text-sm font-medium">Add to your post</p>
+            </div>
 
-            <input
-              type="text"
-              value={location}
-              onChange={(event) => {
-                setLocation(event.target.value);
-              }}
-              placeholder="Add a location"
-              className="h-9 flex-1 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-            />
+            <Separator />
+
+            <div className="grid grid-cols-2 sm:grid-cols-4">
+              <Button
+                type="button"
+                variant="ghost"
+                className="justify-start gap-2 rounded-none"
+                onClick={() => {
+                  fileInputRef.current?.click();
+                }}
+              >
+                <ImagePlus className="size-4 text-green-600" />
+                Photo
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                className="justify-start gap-2 rounded-none"
+                onClick={() => {
+                  insertText(" 😊");
+                }}
+              >
+                <Smile className="size-4 text-yellow-500" />
+                Feeling
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                className="justify-start gap-2 rounded-none"
+                onClick={() => {
+                  setShowLocation((current) => !current);
+                }}
+              >
+                <MapPin className="size-4 text-red-500" />
+                Location
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                className="justify-start gap-2 rounded-none"
+                onClick={() => {
+                  insertText("@");
+                }}
+              >
+                <AtSign className="size-4 text-blue-500" />
+                Tag people
+              </Button>
+            </div>
           </div>
-        )}
 
-        {/* ------------------------------------------- */}
-        {/* HELP TEXT                                   */}
-        {/* ------------------------------------------- */}
+          {/* ------------------------------------------- */}
+          {/* LOCATION                                    */}
+          {/* ------------------------------------------- */}
 
-        <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">
-          <p>
-            Use <strong>#hashtags</strong> to categorize your post and{" "}
-            <strong>@mentions</strong> to tag people.
-          </p>
+          {showLocation && (
+            <div className="flex items-center gap-2">
+              <MapPin className="size-4 text-muted-foreground" />
+
+              <input
+                type="text"
+                value={location}
+                onChange={(event) => {
+                  setLocation(event.target.value);
+                }}
+                placeholder="Add a location"
+                className="h-9 flex-1 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+          )}
+
+          {/* ------------------------------------------- */}
+          {/* HELP TEXT                                   */}
+          {/* ------------------------------------------- */}
+
+          <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">
+            <p>
+              Use <strong>#hashtags</strong> to categorize your post and{" "}
+              <strong>@mentions</strong> to tag people.
+            </p>
+          </div>
         </div>
 
         {/* ------------------------------------------- */}
@@ -649,8 +666,12 @@ export default function CreatePost({ onCreate }: CreatePostProps) {
             Cancel
           </Button>
 
-          <Button type="button" disabled={!canPost} onClick={handleCreatePost}>
-            Post
+          <Button
+            type="button"
+            disabled={!canPost || loading}
+            onClick={handleCreatePost}
+          >
+            {loading ? "Posting" : "Post"}
           </Button>
         </DialogFooter>
       </DialogContent>

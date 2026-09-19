@@ -131,7 +131,6 @@ function isSameDay(first: string, second: string) {
 export default function MessageList({
   conversation,
   loadingMessages,
-  messages,
 
   onDeleteMessage,
   onEditMessage,
@@ -141,37 +140,13 @@ export default function MessageList({
   const [deleteMessage, setDeleteMessage] = useState<Message | null>(null);
 
   const [openMessageId, setOpenMessageId] = useState<string | null>(null);
+  const { messagesByConversation } = useMessageStore();
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // ============================================================
-  // GET MESSAGES FOR CURRENT CONVERSATION
-  // ============================================================
-
-  const conversationMessages = conversation
-    ? (messages[conversation.id] ?? [])
-    : [];
-
-  // ============================================================
-  // SORT MESSAGES
-  // ============================================================
-
-  const sortedMessages = useMemo(() => {
-    return [...conversationMessages].sort(
-      (a, b) =>
-        new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-    );
-  }, [conversationMessages]);
-
-  // ============================================================
-  // FIND OTHER PARTICIPANT
-  //
-  // For a DM:
-  //
-  // currentUser
-  // otherUser ← this is who we care about for "Seen"
-  //
-  // ============================================================
+  const messages = useMemo(() => {
+    return messagesByConversation[conversation.id];
+  }, [messagesByConversation]);
 
   const currentConversation = useMessageStore((state) =>
     state.conversations.find(
@@ -183,11 +158,6 @@ export default function MessageList({
     (participant) => participant.id !== user?.id,
   );
 
-  // ============================================================
-  // FIND THE LAST MESSAGE SENT BY ME
-  // THAT THE OTHER PARTICIPANT HAS READ
-  // ============================================================
-
   const lastReadMessageId = useMemo(() => {
     const lastReadAt = otherParticipant?.lastReadAt;
 
@@ -197,8 +167,8 @@ export default function MessageList({
 
     const readTime = new Date(lastReadAt).getTime();
 
-    for (let i = sortedMessages.length - 1; i >= 0; i--) {
-      const message = sortedMessages[i];
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const message = messages[i];
 
       if (message.sender.id !== user?.id) {
         continue;
@@ -212,30 +182,7 @@ export default function MessageList({
     }
 
     return null;
-  }, [sortedMessages, user?.id, otherParticipant?.lastReadAt]);
-
-  const hasOtherPersonReplied = useMemo(() => {
-    if (!user?.id) {
-      return false;
-    }
-
-    let lastMineIndex = -1;
-
-    for (let i = sortedMessages.length - 1; i >= 0; i--) {
-      if (sortedMessages[i].sender.id === user.id) {
-        lastMineIndex = i;
-        break;
-      }
-    }
-
-    if (lastMineIndex === -1) {
-      return false;
-    }
-
-    return sortedMessages
-      .slice(lastMineIndex + 1)
-      .some((message) => message.sender.id !== user.id);
-  }, [sortedMessages, user?.id]);
+  }, [messages, user?.id, otherParticipant?.lastReadAt]);
 
   // ============================================================
   // AUTOMATICALLY SCROLL TO NEWEST MESSAGE
@@ -262,7 +209,7 @@ export default function MessageList({
       behavior: "smooth",
       block: "end",
     });
-  }, [sortedMessages, conversation.id]);
+  }, [messages, conversation.id]);
 
   // ============================================================
   // COPY
@@ -304,7 +251,7 @@ export default function MessageList({
   // EMPTY
   // ============================================================
 
-  if (!sortedMessages.length) {
+  if (!messages.length) {
     return (
       <div className="flex min-h-0 flex-1 items-center justify-center p-6">
         <div className="text-center">
@@ -328,10 +275,10 @@ export default function MessageList({
           MESSAGE SCROLL AREA
       ====================================================== */}
       <div className="hide-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-2 sm:px-6 sm:py-3">
-        {sortedMessages.map((message, index) => {
+        {messages.map((message, index) => {
           const isMine = message.sender.id === user?.id;
 
-          const previousMessage = sortedMessages[index - 1];
+          const previousMessage = messages[index - 1];
 
           const showDate =
             !previousMessage ||
@@ -347,10 +294,14 @@ export default function MessageList({
           // 3. They have NOT replied after my latest message
           // ==================================================
 
+          const hasMessageFromOtherPersonAfter = messages
+            .slice(index + 1)
+            .some((nextMessage) => nextMessage.sender.id !== user?.id);
+
           const showSeen =
             isMine &&
             message.id === lastReadMessageId &&
-            !hasOtherPersonReplied;
+            !hasMessageFromOtherPersonAfter;
 
           return (
             <div key={message.id} className="mt-2">

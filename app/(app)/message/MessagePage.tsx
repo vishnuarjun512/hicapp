@@ -4,23 +4,18 @@ import { useEffect, useState } from "react";
 
 import { AppShell } from "@/components/app-shell";
 import { Card } from "@/components/ui/card";
-import { useAuthStore } from "@/lib/stores/auth-store";
 
-import {
-  getConversationMessages,
-  getConversations,
-} from "@/lib/(apiCalls)/message/message-api";
+import { getConversationMessages } from "@/lib/(apiCalls)/message/message-api";
 
 import { Conversation } from "@/lib/types";
 
 import { useApi } from "@/lib/(apiCalls)/useApi";
 import { useMessageStore } from "@/lib/stores/message-store";
 import { useWebSocket } from "@/components/WebSocketProvider";
-import ConversationList from "./(components)/conversation-list";
+import ConversationList from "./(components)/(conversation)/conversation-list";
 import ChatWindow from "./(components)/chat-window";
 
 export default function MessagesPage() {
-  const { user } = useAuthStore();
   const { execute } = useApi();
   const {
     messagesByConversation,
@@ -33,30 +28,7 @@ export default function MessagesPage() {
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
 
-  const [loadingConversations, setLoadingConversations] = useState(true);
-
   const [loadingMessages, setLoadingMessages] = useState(false);
-
-  //  GET CONVERSATIONS
-
-  // useEffect(() => {
-  //   if (!user?.id) return;
-
-  //   const loadConversations = async () => {
-  //     try {
-  //       setLoadingConversations(true);
-
-  //       const data = await execute(() => getConversations());
-  //       setConversations(data);
-  //     } catch (error) {
-  //       console.error("Failed to load conversations:", error);
-  //     } finally {
-  //       setLoadingConversations(false);
-  //     }
-  //   };
-
-  //   loadConversations();
-  // }, [user]);
 
   useEffect(() => {
     if (!selectedConversation) {
@@ -106,16 +78,11 @@ export default function MessagesPage() {
   const handleSendMessage = async (content: string) => {
     if (!selectedConversation) return;
 
-    try {
-      // const newMessage = await sendMessage(selectedConversation.id, content);
-      sendMessageWs({
-        type: "message:frontend->backend",
-        conversationId: selectedConversation.id,
-        content,
-      });
-    } catch (error) {
-      console.error("Failed to send message:", error);
-    }
+    sendMessageWs({
+      type: "message:frontend->backend",
+      conversationId: selectedConversation.id,
+      content,
+    });
   };
 
   //  MOBILE BACK

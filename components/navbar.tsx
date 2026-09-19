@@ -61,9 +61,11 @@ export default function Navbar() {
 
   useEffect(() => {
     setUnreadMessageCount(
-      conversations.reduce((accumulator, conversation) => {
-        return accumulator + conversation.unread;
-      }, 0),
+      conversations
+        ? conversations.reduce((accumulator, conversation) => {
+            return accumulator + conversation.unread;
+          }, 0)
+        : 0,
     );
   }, [user?.id]);
 

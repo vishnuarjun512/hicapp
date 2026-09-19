@@ -19,7 +19,7 @@ type WebSocketProviderProps = {
 
 type WebSocketContextType = {
   connected: boolean;
-  sendMessageWs: (message: unknown) => void;
+  sendMessageWs: (message: any) => void;
 };
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
@@ -116,20 +116,22 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     };
   }, [receivedMessage, updateParticipantReadState]);
 
-  const sendMessageWs = (message: unknown) => {
-    const socket = socketRef.current;
+  const sendMessageWs = (message: any) => {
+    try {
+      const socket = socketRef.current;
 
-    if (!socket) {
-      console.log("WebSocket is not connected");
-      return;
+      if (!socket) {
+        throw new Error("WebSocket is not connected");
+      }
+
+      if (socket.readyState !== WebSocket.OPEN) {
+        throw new Error("WebSocket is not open");
+      }
+
+      socket.send(JSON.stringify(message));
+    } catch (error) {
+      console.error("Failed to send message:", error);
     }
-
-    if (socket.readyState !== WebSocket.OPEN) {
-      console.log("WebSocket is not open");
-      return;
-    }
-
-    socket.send(JSON.stringify(message));
   };
 
   return (

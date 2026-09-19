@@ -30,6 +30,7 @@ import { Conversation, Message } from "@/lib/types";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMessageStore } from "@/lib/stores/message-store";
+import { useAuthStore } from "@/lib/stores/auth-store";
 
 type MessageListProps = {
   conversation: Conversation;
@@ -39,8 +40,6 @@ type MessageListProps = {
   conversationId: string | null;
 
   messages: Record<string, Message[]>;
-
-  currentUserId: string;
 
   onDeleteMessage?: (message: Message, deleteForEveryone: boolean) => void;
 
@@ -135,12 +134,13 @@ export default function MessageList({
   conversation,
   loadingMessages,
   messages,
-  currentUserId,
+
   conversationId,
   onDeleteMessage,
   onEditMessage,
   onReplyMessage,
 }: MessageListProps) {
+  const { user } = useAuthStore();
   const [deleteMessage, setDeleteMessage] = useState<Message | null>(null);
 
   const [openMessageId, setOpenMessageId] = useState<string | null>(null);
@@ -162,7 +162,7 @@ export default function MessageList({
   const sortedMessages = useMemo(() => {
     return [...conversationMessages].sort(
       (a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
     );
   }, [conversationMessages]);
 
@@ -180,7 +180,7 @@ export default function MessageList({
   );
 
   const otherParticipant: any = currentConversation?.participants.find(
-    (participant) => participant.id !== currentUserId,
+    (participant) => participant.id !== user?.id,
   );
 
   // ============================================================
@@ -200,11 +200,11 @@ export default function MessageList({
     for (let i = sortedMessages.length - 1; i >= 0; i--) {
       const message = sortedMessages[i];
 
-      if (message.sender.id !== currentUserId) {
+      if (message.sender.id !== user?.id) {
         continue;
       }
 
-      const messageTime = new Date(message.createdAt).getTime();
+      const messageTime = new Date(message.created_at).getTime();
 
       if (messageTime <= readTime) {
         return message.id;
@@ -212,7 +212,7 @@ export default function MessageList({
     }
 
     return null;
-  }, [sortedMessages, currentUserId, otherParticipant?.lastReadAt]);
+  }, [sortedMessages, user?.id, otherParticipant?.lastReadAt]);
 
   // ============================================================
   // AUTOMATICALLY SCROLL TO NEWEST MESSAGE
@@ -307,13 +307,13 @@ export default function MessageList({
 
       <div className="hide-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-2 sm:px-6 sm:py-3">
         {sortedMessages.map((message, index) => {
-          const isMine = message.sender.id === currentUserId;
+          const isMine = message.sender.id === user?.id;
 
           const previousMessage = sortedMessages[index - 1];
 
           const showDate =
             !previousMessage ||
-            !isSameDay(previousMessage.createdAt, message.createdAt);
+            !isSameDay(previousMessage.created_at, message.created_at);
 
           // ==================================================
           // SHOULD SHOW SEEN?
@@ -338,7 +338,7 @@ export default function MessageList({
                   <div className="h-px flex-1 bg-border" />
 
                   <span className="shrink-0 text-[11px] font-medium text-muted-foreground">
-                    {formatDateLabel(message.createdAt)}
+                    {formatDateLabel(message.created_at)}
                   </span>
 
                   <div className="h-px flex-1 bg-border" />
@@ -463,7 +463,7 @@ export default function MessageList({
                           group-hover:translate-y-0
                         "
                         >
-                          {formatMessageTime(message.createdAt)}
+                          {formatMessageTime(message.created_at)}
                         </span>
                       </div>
                     </div>

@@ -25,11 +25,10 @@ export default function MessagesPage() {
   const {
     messagesByConversation,
     setMessages,
-
+    setActiveConversation,
     conversations,
     setConversations,
     markConversationAsRead,
-    receivedMessage,
   } = useMessageStore();
 
   const [selectedConversation, setSelectedConversation] =
@@ -41,24 +40,24 @@ export default function MessagesPage() {
 
   //  GET CONVERSATIONS
 
-  useEffect(() => {
-    if (!user?.id) return;
+  // useEffect(() => {
+  //   if (!user?.id) return;
 
-    const loadConversations = async () => {
-      try {
-        setLoadingConversations(true);
+  //   const loadConversations = async () => {
+  //     try {
+  //       setLoadingConversations(true);
 
-        const data = await execute(() => getConversations(user.id));
-        setConversations(data);
-      } catch (error) {
-        console.error("Failed to load conversations:", error);
-      } finally {
-        setLoadingConversations(false);
-      }
-    };
+  //       const data = await execute(() => getConversations());
+  //       setConversations(data);
+  //     } catch (error) {
+  //       console.error("Failed to load conversations:", error);
+  //     } finally {
+  //       setLoadingConversations(false);
+  //     }
+  //   };
 
-    loadConversations();
-  }, [user]);
+  //   loadConversations();
+  // }, [user]);
 
   useEffect(() => {
     if (!selectedConversation) {
@@ -101,10 +100,10 @@ export default function MessagesPage() {
   // SELECT CONVERSATION
   const handleSelectConversation = (conversation: Conversation) => {
     setSelectedConversation(conversation);
-
-    markConversationAsRead(conversation.id);
+    setActiveConversation(conversation.id);
 
     if (conversation.unread > 0) {
+      markConversationAsRead(conversation.id);
       sendMessageWs({
         type: "conversation:read",
         conversationId: conversation.id,
@@ -184,7 +183,6 @@ export default function MessagesPage() {
                   loadingMessages={loadingMessages}
                   conversation={selectedConversation}
                   messages={messagesByConversation}
-                  currentUserId={user?.id ?? ""}
                   onSendMessage={handleSendMessage}
                   onBack={handleBack}
                 />

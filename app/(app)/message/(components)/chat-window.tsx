@@ -10,7 +10,6 @@ type ChatWindowProps = {
   loadingMessages?: boolean;
   conversation: Conversation;
   messages: Record<string, Message[]>;
-  currentUserId: string;
   onSendMessage: (content: string) => void;
   onBack: () => void;
 };
@@ -18,7 +17,6 @@ type ChatWindowProps = {
 export default function ChatWindow({
   conversation,
   messages,
-  currentUserId,
   loadingMessages,
   onSendMessage,
   onBack,
@@ -47,7 +45,6 @@ export default function ChatWindow({
           conversation={conversation}
           conversationId={conversation.id}
           messages={messages}
-          currentUserId={currentUserId}
           loadingMessages={loadingMessages}
         />
       )}

@@ -86,7 +86,6 @@ export const useMessageStore = create<MessageState>()(
           const existingMessages =
             state.messagesByConversation[conversationId] ?? [];
 
-          // Prevent duplicate messages
           if (existingMessages.some((item) => item.id === message.id)) {
             return state;
           }
@@ -99,6 +98,12 @@ export const useMessageStore = create<MessageState>()(
 
           const shouldIncreaseUnread = !isOwnMessage && !isActive;
 
+          console.log({
+            isOwnMessage,
+            isActive,
+            shouldIncreaseUnread,
+          });
+
           return {
             messagesByConversation: {
               ...state.messagesByConversation,
@@ -110,11 +115,8 @@ export const useMessageStore = create<MessageState>()(
               conversation.id === conversationId
                 ? {
                     ...conversation,
-
                     preview: message.content,
-
                     lastMessageAt: message.createdAt,
-
                     unread: shouldIncreaseUnread
                       ? conversation.unread + 1
                       : conversation.unread,
@@ -123,7 +125,6 @@ export const useMessageStore = create<MessageState>()(
             ),
           };
         }),
-
       // ==========================================
       // UPDATE MESSAGE
       // ==========================================

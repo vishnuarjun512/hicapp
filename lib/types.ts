@@ -14,6 +14,6 @@ export type Message = {
   conversationId: string;
   sender: User;
   content: string;
-  createdAt: string;
+  created_at: string;
   readAt?: string | null;
 };

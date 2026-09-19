@@ -10,6 +10,8 @@ import {
 } from "react";
 
 import { useMessageStore } from "@/lib/stores/message-store";
+import { useApi } from "@/lib/(apiCalls)/useApi";
+import { getConversations } from "@/lib/(apiCalls)/message/message-api";
 
 type WebSocketProviderProps = {
   children: ReactNode;
@@ -27,17 +29,20 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
   const [connected, setConnected] = useState(false);
 
-  const { receivedMessage, updateParticipantReadState } = useMessageStore();
+  const { receivedMessage, updateParticipantReadState, setConversations } =
+    useMessageStore();
+  const { execute } = useApi();
 
   useEffect(() => {
     const socket = new WebSocket("ws://localhost:4000");
 
     socketRef.current = socket;
 
-    socket.onopen = () => {
+    socket.onopen = async () => {
       // console.log("🟢 WebSocket connected");
-
       setConnected(true);
+      const data: any = await execute(() => getConversations());
+      setConversations(data);
     };
 
     socket.onmessage = (event) => {
@@ -52,9 +57,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
         if (data.type === "message:backend->frontend") {
           const message = data.message;
-
-          receivedMessage(message.conversationId, message);
-
+          receivedMessage(message.conversation_id, message);
           return;
         }
 

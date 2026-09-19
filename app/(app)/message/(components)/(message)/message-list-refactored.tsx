@@ -123,29 +123,6 @@ export default function MessageListRefactored({
    * ----------------------------------------------------------
    */
 
-  const hasOtherPersonReplied = useMemo(() => {
-    if (!user?.id) {
-      return false;
-    }
-
-    let lastMineIndex = -1;
-
-    for (let index = sortedMessages.length - 1; index >= 0; index--) {
-      if (sortedMessages[index].sender.id === user.id) {
-        lastMineIndex = index;
-        break;
-      }
-    }
-
-    if (lastMineIndex === -1) {
-      return false;
-    }
-
-    return sortedMessages
-      .slice(lastMineIndex + 1)
-      .some((message) => message.sender.id !== user.id);
-  }, [sortedMessages, user?.id]);
-
   /*
    * ----------------------------------------------------------
    * AUTO SCROLL
@@ -259,10 +236,15 @@ export default function MessageListRefactored({
             !previousMessage ||
             !isSameDay(previousMessage.created_at, message.created_at);
 
+          // Has the other person sent anything after THIS message?
+          const hasOtherPersonRepliedAfter = sortedMessages
+            .slice(index + 1)
+            .some((nextMessage) => nextMessage.sender.id !== user?.id);
+
           const showSeen =
             isMine &&
             message.id === lastReadMessageId &&
-            !hasOtherPersonReplied;
+            !hasOtherPersonRepliedAfter;
 
           return (
             <div key={message.id} className="mt-2">

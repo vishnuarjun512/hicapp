@@ -37,8 +37,6 @@ type MessageListProps = {
 
   loadingMessages?: boolean;
 
-  conversationId: string | null;
-
   messages: Record<string, Message[]>;
 
   onDeleteMessage?: (message: Message, deleteForEveryone: boolean) => void;
@@ -135,7 +133,6 @@ export default function MessageList({
   loadingMessages,
   messages,
 
-  conversationId,
   onDeleteMessage,
   onEditMessage,
   onReplyMessage,
@@ -151,8 +148,8 @@ export default function MessageList({
   // GET MESSAGES FOR CURRENT CONVERSATION
   // ============================================================
 
-  const conversationMessages = conversationId
-    ? (messages[conversationId] ?? [])
+  const conversationMessages = conversation
+    ? (messages[conversation.id] ?? [])
     : [];
 
   // ============================================================
@@ -175,8 +172,11 @@ export default function MessageList({
   // otherUser ← this is who we care about for "Seen"
   //
   // ============================================================
+
   const currentConversation = useMessageStore((state) =>
-    state.conversations.find((item) => item.id === conversationId),
+    state.conversations.find(
+      (conversationItem) => conversationItem.id === conversation.id,
+    ),
   );
 
   const otherParticipant: any = currentConversation?.participants.find(
@@ -214,6 +214,29 @@ export default function MessageList({
     return null;
   }, [sortedMessages, user?.id, otherParticipant?.lastReadAt]);
 
+  const hasOtherPersonReplied = useMemo(() => {
+    if (!user?.id) {
+      return false;
+    }
+
+    let lastMineIndex = -1;
+
+    for (let i = sortedMessages.length - 1; i >= 0; i--) {
+      if (sortedMessages[i].sender.id === user.id) {
+        lastMineIndex = i;
+        break;
+      }
+    }
+
+    if (lastMineIndex === -1) {
+      return false;
+    }
+
+    return sortedMessages
+      .slice(lastMineIndex + 1)
+      .some((message) => message.sender.id !== user.id);
+  }, [sortedMessages, user?.id]);
+
   // ============================================================
   // AUTOMATICALLY SCROLL TO NEWEST MESSAGE
   // ============================================================
@@ -222,7 +245,7 @@ export default function MessageList({
 
   useEffect(() => {
     const isConversationChange =
-      previousConversationId.current !== conversationId;
+      previousConversationId.current !== conversation.id;
 
     if (isConversationChange) {
       bottomRef.current?.scrollIntoView({
@@ -230,7 +253,7 @@ export default function MessageList({
         block: "end",
       });
 
-      previousConversationId.current = conversationId;
+      previousConversationId.current = conversation.id;
 
       return;
     }
@@ -239,7 +262,7 @@ export default function MessageList({
       behavior: "smooth",
       block: "end",
     });
-  }, [sortedMessages, conversationId]);
+  }, [sortedMessages, conversation.id]);
 
   // ============================================================
   // COPY
@@ -301,10 +324,9 @@ export default function MessageList({
 
   return (
     <>
-      {/* ====================================================== /}
-{/ MESSAGE SCROLL AREA /}
-{/ ====================================================== */}
-
+      {/* ====================================================== 
+          MESSAGE SCROLL AREA
+      ====================================================== */}
       <div className="hide-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-2 sm:px-6 sm:py-3">
         {sortedMessages.map((message, index) => {
           const isMine = message.sender.id === user?.id;
@@ -318,14 +340,17 @@ export default function MessageList({
           // ==================================================
           // SHOULD SHOW SEEN?
           //
-          // Only true for:
+          // Show Seen only when:
           //
-          // 1. My message
-          // 2. It is the last message I sent
-          //    that the other participant has read
+          // 1. This is my message
+          // 2. The other participant has read this message
+          // 3. They have NOT replied after my latest message
           // ==================================================
 
-          const showSeen = isMine && message.id === lastReadMessageId;
+          const showSeen =
+            isMine &&
+            message.id === lastReadMessageId &&
+            !hasOtherPersonReplied;
 
           return (
             <div key={message.id} className="mt-2">
@@ -476,11 +501,9 @@ export default function MessageList({
 
         <div ref={bottomRef} />
       </div>
-
       {/* ====================================================== */}
       {/* DELETE CONFIRMATION */}
       {/* ====================================================== */}
-
       <AlertDialog
         open={!!deleteMessage}
         onOpenChange={(open) => {

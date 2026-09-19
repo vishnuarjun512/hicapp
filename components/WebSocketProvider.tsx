@@ -56,17 +56,26 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
         // =========================================
 
         if (data.type === "message:backend->frontend") {
+          const activeConversationId =
+            useMessageStore.getState().activeConversationId;
           const message = data.message;
+
           receivedMessage(message.conversation_id, message);
+          // If I'm currently viewing this conversation,
+          // the newly received message is immediately read.
+          if (activeConversationId === message.conversation_id) {
+            sendMessageWs({
+              type: "conversation:read(frontend->backend)",
+              conversationId: message.conversation_id,
+            });
+          }
           return;
         }
 
         // =========================================
         // CONVERSATION READ
         // =========================================
-        if (data.type === "conversation:read") {
-          console.log("📖 READ EVENT RECEIVED:", data);
-
+        if (data.type === "conversation:read(backend->frontend)") {
           useMessageStore
             .getState()
             .updateParticipantReadState(
@@ -80,11 +89,6 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       } catch (error) {
         console.error("❌ Failed to process WebSocket message:", error);
       }
-    };
-
-    socket.onclose = () => {
-      // console.log("🔴 WebSocket disconnected");
-      setConnected(false);
     };
 
     socket.onerror = (error) => {

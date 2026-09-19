@@ -43,7 +43,6 @@ export default function ChatWindow({
       {conversation && (
         <MessageList
           conversation={conversation}
-          conversationId={conversation.id}
           messages={messages}
           loadingMessages={loadingMessages}
         />

@@ -27,7 +27,6 @@ export default function MessagesPage() {
     setMessages,
     setActiveConversation,
     conversations,
-    setConversations,
     markConversationAsRead,
   } = useMessageStore();
 
@@ -87,13 +86,6 @@ export default function MessagesPage() {
       }
     };
 
-    if (selectedConversation.unread > 0) {
-      sendMessageWs({
-        type: "conversation:read",
-        conversationId: selectedConversation.id,
-      });
-    }
-
     loadMessages();
   }, [selectedConversation]);
 
@@ -102,13 +94,12 @@ export default function MessagesPage() {
     setSelectedConversation(conversation);
     setActiveConversation(conversation.id);
 
-    if (conversation.unread > 0) {
-      markConversationAsRead(conversation.id);
-      sendMessageWs({
-        type: "conversation:read",
-        conversationId: conversation.id,
-      });
-    }
+    markConversationAsRead(conversation.id);
+
+    sendMessageWs({
+      type: "conversation:read(frontend->backend)",
+      conversationId: conversation.id,
+    });
   };
 
   //  SEND MESSAGE
@@ -130,6 +121,7 @@ export default function MessagesPage() {
   //  MOBILE BACK
   const handleBack = () => {
     setSelectedConversation(null);
+    setActiveConversation(null);
   };
 
   const { connected, sendMessageWs } = useWebSocket();

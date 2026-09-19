@@ -98,12 +98,6 @@ export const useMessageStore = create<MessageState>()(
 
           const shouldIncreaseUnread = !isOwnMessage && !isActive;
 
-          console.log({
-            isOwnMessage,
-            isActive,
-            shouldIncreaseUnread,
-          });
-
           return {
             messagesByConversation: {
               ...state.messagesByConversation,
@@ -116,7 +110,7 @@ export const useMessageStore = create<MessageState>()(
                 ? {
                     ...conversation,
                     preview: message.content,
-                    lastMessageAt: message.createdAt,
+                    lastMessageAt: message.created_at,
                     unread: shouldIncreaseUnread
                       ? conversation.unread + 1
                       : conversation.unread,

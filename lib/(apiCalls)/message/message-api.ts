@@ -12,15 +12,18 @@ export async function getConversations() {
   return data.conversations;
 }
 
-export async function getConversationMessages(conversationId: string) {
-  const url = `/conversations/${conversationId}/messages`;
+export async function getConversationMessages(
+  conversationId: string,
+  limit = 10,
+) {
+  const url = `/conversations/${conversationId}/messages?limit=${limit}`;
 
   const response = await apiFetch(url, {
     method: "GET",
   });
 
   const data = await response.json();
-  return data.messages;
+  return data;
 }
 
 export async function createConversation(

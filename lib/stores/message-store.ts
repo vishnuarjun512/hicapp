@@ -8,13 +8,20 @@ import { useAuthStore } from "./auth-store";
 
 type MessageState = {
   conversations: Conversation[];
+
   messagesByConversation: Record<string, Message[]>;
+
+  hasMoreMessages: Record<string, boolean>;
 
   activeConversationId: string | null;
 
   setActiveConversation: (conversationId: string | null) => void;
 
   setConversations: (conversations: Conversation[]) => void;
+
+  setHasMoreMessages: (conversationId: string, hasMore: boolean) => void;
+
+  prependMessages: (conversationId: string, olderMessages: Message[]) => void;
 
   setMessages: (conversationId: string, messages: Message[]) => void;
 
@@ -46,6 +53,8 @@ export const useMessageStore = create<MessageState>()(
 
       activeConversationId: null,
 
+      hasMoreMessages: {},
+
       // ==========================================
       // ACTIVE CONVERSATION
       // ==========================================
@@ -76,6 +85,27 @@ export const useMessageStore = create<MessageState>()(
             [conversationId]: messages,
           },
         })),
+
+      setHasMoreMessages: (conversationId, hasMore) =>
+        set((state) => ({
+          hasMoreMessages: {
+            ...state.hasMoreMessages,
+            [conversationId]: hasMore,
+          },
+        })),
+
+      prependMessages: (conversationId, olderMessages) =>
+        set((state) => {
+          const existingMessages =
+            state.messagesByConversation[conversationId] ?? [];
+
+          return {
+            messagesByConversation: {
+              ...state.messagesByConversation,
+              [conversationId]: [...olderMessages, ...existingMessages],
+            },
+          };
+        }),
 
       // ==========================================
       // RECEIVE MESSAGE

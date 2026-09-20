@@ -23,6 +23,7 @@ export default function MessagesPage() {
     setActiveConversation,
     conversations,
     markConversationAsRead,
+    setHasMoreMessages,
   } = useMessageStore();
 
   const [selectedConversation, setSelectedConversation] =
@@ -31,26 +32,30 @@ export default function MessagesPage() {
   const [loadingMessages, setLoadingMessages] = useState(false);
 
   useEffect(() => {
-    if (!selectedConversation) {
+    if (!selectedConversation) return;
+
+    const conversationId = selectedConversation.id;
+
+    const existingMessages =
+      useMessageStore.getState().messagesByConversation[conversationId];
+
+    // Already loaded → don't call API again
+    if (Array.isArray(existingMessages)) {
       return;
     }
 
     const loadMessages = async () => {
-      const existingMessages =
-        useMessageStore.getState().messagesByConversation[
-          selectedConversation.id
-        ];
-
-      if (existingMessages) {
-        return;
-      }
       setLoadingMessages(true);
+
       try {
         const data = await execute(() =>
-          getConversationMessages(selectedConversation.id),
+          getConversationMessages(conversationId, 10),
         );
 
-        setMessages(selectedConversation.id, data);
+        console.log("Data ->", data);
+
+        setMessages(conversationId, data.messages);
+        setHasMoreMessages(conversationId, data.hasMore);
       } catch (error) {
         console.error(error);
       } finally {

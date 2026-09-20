@@ -56,13 +56,15 @@ export default function MessageListRefactored({
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  const { messagesByConversation } = useMessageStore();
+
   /*
-   * ----------------------------------------------------------
+   * -----------------------  -----------------------------------
    * MESSAGES
    * ----------------------------------------------------------
    */
 
-  const conversationMessages = messages[conversation.id] ?? [];
+  const conversationMessages = messagesByConversation[conversation.id] ?? [];
 
   const sortedMessages = useMemo(() => {
     return [...conversationMessages].sort(

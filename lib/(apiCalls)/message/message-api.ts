@@ -15,8 +15,13 @@ export async function getConversations() {
 export async function getConversationMessages(
   conversationId: string,
   limit = 10,
+  prevMessageID: null | string = null,
 ) {
-  const url = `/conversations/${conversationId}/messages?limit=${limit}`;
+  let url = `/conversations/${conversationId}/messages?limit=${limit}`;
+
+  if (prevMessageID) {
+    url = url.concat(`&prevMessageID=${prevMessageID}`);
+  }
 
   const response = await apiFetch(url, {
     method: "GET",

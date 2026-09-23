@@ -1,5 +1,23 @@
 import { User } from "./stores/auth-store";
 
+import {
+  Bookmark,
+  Home,
+  MessageCircle,
+  Settings,
+  UserRound,
+  Users,
+} from "lucide-react";
+
+export const iconMap = {
+  home: Home,
+  users: Users,
+  message: MessageCircle,
+  user: UserRound,
+  bookmark: Bookmark,
+  settings: Settings,
+};
+
 export const currentUser: User = {
   id: "current-user-id",
   email: "maya.chen@example.com",

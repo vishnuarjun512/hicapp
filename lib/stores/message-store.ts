@@ -244,6 +244,7 @@ export const useMessageStore = create<MessageState>()(
           messagesByConversation: {},
           conversations: [],
           activeConversationId: null,
+          hasMoreMessages: {},
         }),
     }),
 

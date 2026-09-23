@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 
 import { AppShell } from "@/components/app-shell";
 import { Card } from "@/components/ui/card";
-
 import { getConversationMessages } from "@/lib/(apiCalls)/message/message-api";
-
 import { Conversation } from "@/lib/types";
 
 import { useApi } from "@/lib/(apiCalls)/useApi";
@@ -49,11 +47,8 @@ export default function MessagesPage() {
 
       try {
         const data = await execute(() =>
-          getConversationMessages(conversationId, 10),
+          getConversationMessages(conversationId, 9),
         );
-
-        console.log("Data ->", data);
-
         setMessages(conversationId, data.messages);
         setHasMoreMessages(conversationId, data.hasMore);
       } catch (error) {

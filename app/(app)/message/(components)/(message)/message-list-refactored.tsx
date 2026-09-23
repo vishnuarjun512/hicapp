@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { toast } from "sonner";
 
@@ -21,6 +21,11 @@ import { Message, Conversation } from "@/lib/types";
 import { useMessageStore } from "@/lib/stores/message-store";
 import { useAuthStore } from "@/lib/stores/auth-store";
 
+import { getConversationMessages } from "@/lib/(apiCalls)/message/message-api";
+import { useApi } from "@/lib/(apiCalls)/useApi";
+
+import { useMessageScroll } from "@/lib/hooks/use-message-scroll";
+
 import MessageItem from "./message-item";
 import MessageSkeleton from "./message-skeleton";
 
@@ -40,10 +45,10 @@ type MessageListProps = {
   onReplyMessage?: (message: Message) => void;
 };
 
-export default function MessageListRefactored({
+export default function MessageList({
   conversation,
   loadingMessages,
-  messages,
+  messages: _messages,
   onDeleteMessage,
   onEditMessage,
   onReplyMessage,
@@ -54,24 +59,37 @@ export default function MessageListRefactored({
 
   const [openMessageId, setOpenMessageId] = useState<string | null>(null);
 
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const { execute } = useApi();
 
-  const { messagesByConversation } = useMessageStore();
+  const {
+    messagesByConversation,
+    hasMoreMessages,
+    prependMessages,
+    setHasMoreMessages,
+  } = useMessageStore();
 
   /*
-   * -----------------------  -----------------------------------
+   * ----------------------------------------------------------
    * MESSAGES
    * ----------------------------------------------------------
    */
 
   const conversationMessages = messagesByConversation[conversation.id] ?? [];
 
+  // Sort chronological
   const sortedMessages = useMemo(() => {
     return [...conversationMessages].sort(
       (a, b) =>
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
     );
   }, [conversationMessages]);
+
+  // REVERSE for reverse-flex layout
+  const displayMessages = useMemo(() => {
+    return [...sortedMessages].reverse();
+  }, [sortedMessages]);
+
+  const hasMore = hasMoreMessages[conversation.id] ?? false;
 
   /*
    * ----------------------------------------------------------
@@ -89,7 +107,7 @@ export default function MessageListRefactored({
 
   /*
    * ----------------------------------------------------------
-   * LAST READ MESSAGE
+   * READ RECEIPT
    * ----------------------------------------------------------
    */
 
@@ -121,46 +139,51 @@ export default function MessageListRefactored({
 
   /*
    * ----------------------------------------------------------
-   * HAS OTHER PERSON REPLIED
+   * LOAD OLDER MESSAGES
    * ----------------------------------------------------------
    */
 
-  /*
-   * ----------------------------------------------------------
-   * AUTO SCROLL
-   * ----------------------------------------------------------
-   */
+  const loadOlderMessages = useCallback(async () => {
+    const oldestMessage = sortedMessages[0];
 
-  const previousConversationId = useRef<string | null>(null);
-
-  useEffect(() => {
-    const conversationChanged =
-      previousConversationId.current !== conversation.id;
-
-    if (conversationChanged) {
-      bottomRef.current?.scrollIntoView({
-        behavior: "instant",
-        block: "end",
-      });
-
-      previousConversationId.current = conversation.id;
-
+    if (!oldestMessage) {
       return;
     }
 
-    bottomRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-    });
-  }, [sortedMessages, conversation.id]);
+    const data = await execute(() =>
+      getConversationMessages(conversation.id, 8, oldestMessage.id),
+    );
 
+    prependMessages(conversation.id, data.messages);
+
+    setHasMoreMessages(conversation.id, data.hasMore);
+  }, [
+    conversation.id,
+    sortedMessages,
+    execute,
+    prependMessages,
+    setHasMoreMessages,
+  ]);
+
+  /*
+   * ----------------------------------------------------------
+   * MESSAGE SCROLL
+   * ----------------------------------------------------------
+   */
+
+  const { containerRef } = useMessageScroll({
+    conversationId: conversation.id,
+    messages: sortedMessages,
+    hasMore,
+    loadOlderMessages,
+  });
   /*
    * ----------------------------------------------------------
    * COPY
    * ----------------------------------------------------------
    */
 
-  const handleCopy = async (message: Message) => {
+  const handleCopy = useCallback(async (message: Message) => {
     try {
       await navigator.clipboard.writeText(message.content);
 
@@ -168,7 +191,7 @@ export default function MessageListRefactored({
     } catch {
       toast.error("Couldn't copy message");
     }
-  };
+  }, []);
 
   /*
    * ----------------------------------------------------------
@@ -176,15 +199,18 @@ export default function MessageListRefactored({
    * ----------------------------------------------------------
    */
 
-  const confirmDelete = (deleteForEveryone: boolean) => {
-    if (!deleteMessage) {
-      return;
-    }
+  const confirmDelete = useCallback(
+    (deleteForEveryone: boolean) => {
+      if (!deleteMessage) {
+        return;
+      }
 
-    onDeleteMessage?.(deleteMessage, deleteForEveryone);
+      onDeleteMessage?.(deleteMessage, deleteForEveryone);
 
-    setDeleteMessage(null);
-  };
+      setDeleteMessage(null);
+    },
+    [deleteMessage, onDeleteMessage],
+  );
 
   /*
    * ----------------------------------------------------------
@@ -224,10 +250,15 @@ export default function MessageListRefactored({
 
   return (
     <>
-      <div className="hide-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto p-2">
-        {sortedMessages.map((message, index) => {
-          const isMine = message.sender.id === user?.id;
+      <div
+        ref={containerRef}
+        className="hide-scrollbar flex min-h-0 flex-1 flex-col-reverse overflow-y-auto p-2 [overflow-anchor:none]"
+      >
+        {displayMessages.map((message, displayIndex) => {
+          // Calculate true chronological index for grouping logic
+          const index = sortedMessages.length - 1 - displayIndex;
 
+          const isMine = message.sender.id === user?.id;
           const previousMessage = sortedMessages[index - 1];
           const nextMessage = sortedMessages[index + 1];
 
@@ -238,10 +269,9 @@ export default function MessageListRefactored({
             !previousMessage ||
             !isSameDay(previousMessage.created_at, message.created_at);
 
-          // Has the other person sent anything after THIS message?
           const hasOtherPersonRepliedAfter = sortedMessages
             .slice(index + 1)
-            .some((nextMessage) => nextMessage.sender.id !== user?.id);
+            .some((nextMsg) => nextMsg.sender.id !== user?.id);
 
           const showSeen =
             isMine &&
@@ -250,21 +280,15 @@ export default function MessageListRefactored({
 
           return (
             <div key={message.id} className="mt-2">
-              {/* Date separator */}
-
               {showDate && (
                 <div className="my-2 flex items-center gap-3">
                   <div className="h-px flex-1 bg-border" />
-
                   <span className="shrink-0 text-[11px] font-medium text-muted-foreground">
                     {formatDateLabel(message.created_at)}
                   </span>
-
                   <div className="h-px flex-1 bg-border" />
                 </div>
               )}
-
-              {/* Message */}
 
               <MessageItem
                 message={message}
@@ -285,10 +309,17 @@ export default function MessageListRefactored({
           );
         })}
 
-        <div ref={bottomRef} />
+        {/* In flex-col-reverse, top loader sits at the end of JSX */}
+        {hasMore && (
+          <div className="py-2 text-center text-xs text-muted-foreground">
+            Loading older messages...
+          </div>
+        )}
       </div>
 
-      {/* Delete dialog */}
+      {/* -------------------------------------------------- */}
+      {/* DELETE DIALOG */}
+      {/* -------------------------------------------------- */}
 
       <AlertDialog
         open={!!deleteMessage}

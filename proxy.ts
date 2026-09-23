@@ -6,7 +6,7 @@ export function proxy(request: NextRequest) {
 
   const accessToken = request.cookies.get("hicappAccessToken");
 
-  const publicRoutes = ["/", "/login", "/register"];
+  const publicRoutes = ["/", "/login", "/register", "/logout"];
 
   const isPublicRoute = publicRoutes.includes(pathname);
 
@@ -21,7 +21,8 @@ export function proxy(request: NextRequest) {
 
   // No token + trying to access a protected route
   if (!accessToken && !isPublicRoute) {
-    return NextResponse.redirect(new URL("/", request.url));
+    console.log("No Token Found! Rerouting...");
+    return NextResponse.redirect(new URL("/logout", request.url));
   }
 
   return NextResponse.next();

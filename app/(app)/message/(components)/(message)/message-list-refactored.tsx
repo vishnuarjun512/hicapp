@@ -171,7 +171,7 @@ export default function MessageList({
    * ----------------------------------------------------------
    */
 
-  const { containerRef } = useMessageScroll({
+  const { containerRef, sentinelRef } = useMessageScroll({
     conversationId: conversation.id,
     messages: sortedMessages,
     hasMore,
@@ -279,7 +279,7 @@ export default function MessageList({
             !hasOtherPersonRepliedAfter;
 
           return (
-            <div key={message.id} className="mt-2">
+            <div key={message.id} data-message-id={message.id} className="mt-2">
               {showDate && (
                 <div className="my-2 flex items-center gap-3">
                   <div className="h-px flex-1 bg-border" />
@@ -311,7 +311,10 @@ export default function MessageList({
 
         {/* In flex-col-reverse, top loader sits at the end of JSX */}
         {hasMore && (
-          <div className="py-2 text-center text-xs text-muted-foreground">
+          <div
+            ref={sentinelRef}
+            className="py-2 text-center text-xs text-muted-foreground"
+          >
             Loading older messages...
           </div>
         )}

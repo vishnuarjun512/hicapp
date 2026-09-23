@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 
 type UseMessageScrollOptions<T extends { id: string }> = {
   conversationId: string;
-  messages: T[];
+  messages: T[]; // chronological ascending (oldest -> newest)
   hasMore: boolean;
   loadOlderMessages: () => Promise<void>;
 };
@@ -16,14 +16,39 @@ export function useMessageScroll<T extends { id: string }>({
   loadOlderMessages,
 }: UseMessageScrollOptions<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   const previousConversationIdRef = useRef<string | null>(null);
   const previousMessageCountRef = useRef(0);
   const initializedRef = useRef(false);
   const loadingOlderRef = useRef(false);
 
-  // Remembers the top-most visible element before prepending
   const topElementRef = useRef<{ id: string; topOffset: number } | null>(null);
+
+  /**
+   * Finds the message node closest to the container's visible top edge.
+   * DOM order here is newest -> oldest (because displayMessages is reversed
+   * for the flex-col-reverse layout), which visually is bottom -> top.
+   * So we walk backwards from the end of the list (the oldest / visually
+   * topmost nodes) until we find one that's at or below the current
+   * scroll offset.
+   */
+  const findTopAnchor = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return null;
+
+    const nodes = container.querySelectorAll<HTMLElement>("[data-message-id]");
+    if (!nodes.length) return null;
+
+    for (let i = nodes.length - 1; i >= 0; i--) {
+      const node = nodes[i];
+      if (node.offsetTop >= container.scrollTop - 4) {
+        return node;
+      }
+    }
+
+    return nodes[0];
+  }, []);
 
   /*
    * ----------------------------------------------------------
@@ -47,17 +72,15 @@ export function useMessageScroll<T extends { id: string }>({
       return;
     }
 
-    // 2. Prepend Lock: Anchor to previous top element
+    // 2. Prepend Lock: Anchor to previously captured element
     if (topElementRef.current) {
       const { id, topOffset } = topElementRef.current;
-      const targetElement = container.querySelector(
+      const targetElement = container.querySelector<HTMLElement>(
         `[data-message-id="${id}"]`,
       );
 
-      if (targetElement instanceof HTMLElement) {
-        // Calculate exact relative scroll position to anchor node
-        const newElementTop = targetElement.offsetTop;
-        container.scrollTop = newElementTop - topOffset;
+      if (targetElement) {
+        container.scrollTop = targetElement.offsetTop - topOffset;
       }
 
       topElementRef.current = null;
@@ -68,8 +91,8 @@ export function useMessageScroll<T extends { id: string }>({
     // 3. New Incoming Message at Bottom
     if (messages.length > previousMessageCountRef.current) {
       const isNearBottom =
-        container.scrollHeight - container.scrollTop - container.clientHeight <
-        120;
+        container.scrollHeight - container.scrollTop - container.clientHeight;
+      120;
 
       if (isNearBottom) {
         container.scrollTo({
@@ -101,14 +124,13 @@ export function useMessageScroll<T extends { id: string }>({
 
     loadingOlderRef.current = true;
 
-    // Capture the current top-most message item DOM node
-    const firstMessageNode = container.querySelector("[data-message-id]");
-    if (firstMessageNode instanceof HTMLElement) {
-      const messageId = firstMessageNode.getAttribute("data-message-id");
+    const anchorNode = findTopAnchor();
+    if (anchorNode) {
+      const messageId = anchorNode.getAttribute("data-message-id");
       if (messageId) {
         topElementRef.current = {
           id: messageId,
-          topOffset: firstMessageNode.offsetTop - container.scrollTop,
+          topOffset: anchorNode.offsetTop - container.scrollTop,
         };
       }
     }
@@ -119,36 +141,36 @@ export function useMessageScroll<T extends { id: string }>({
       topElementRef.current = null;
       console.error("Failed to load older messages:", error);
     } finally {
-      // Delay releasing scroll lock trigger by 50ms to allow React paint batching
-      setTimeout(() => {
-        loadingOlderRef.current = false;
-      }, 50);
+      loadingOlderRef.current = false;
     }
-  }, [hasMore, loadOlderMessages]);
+  }, [hasMore, loadOlderMessages, findTopAnchor]);
 
   /*
    * ----------------------------------------------------------
-   * SCROLL LISTENER
+   * TOP-OF-LIST DETECTION (IntersectionObserver)
    * ----------------------------------------------------------
+   * A plain `scrollTop <= N` check is unreliable in flex-direction:
+   * column-reverse containers — Chrome reports negative scrollTop once
+   * you scroll away from the rest position, Firefox doesn't. Watching a
+   * sentinel node sidesteps that entirely.
    */
-  const handleScroll = useCallback(() => {
-    const container = containerRef.current;
-    if (!container || !initializedRef.current || loadingOlderRef.current) {
-      return;
-    }
-
-    if (container.scrollTop <= 60) {
-      void loadOlder();
-    }
-  }, [loadOlder]);
-
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    const sentinel = sentinelRef.current;
+    if (!container || !sentinel) return;
 
-    container.addEventListener("scroll", handleScroll, { passive: true });
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          void loadOlder();
+        }
+      },
+      { root: container, rootMargin: "80px 0px 0px 0px", threshold: 0 },
+    );
 
-  return { containerRef };
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [loadOlder]);
+
+  return { containerRef, sentinelRef };
 }

@@ -1,5 +1,5 @@
 "use client";
-import { currentUser, navItems, users } from "@/lib/social-data";
+import { navItems, users } from "@/lib/social-data";
 import { useEffect, useMemo, useState } from "react";
 import {
   Sheet,
@@ -68,6 +68,10 @@ export default function Navbar() {
         : 0,
     );
   }, [user?.id]);
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
@@ -188,7 +192,7 @@ export default function Navbar() {
             </DropdownMenuContent>
           </DropdownMenu>
           <Link href="/profile">
-            <UserAvatar user={currentUser} />
+            <UserAvatar user={user} />
           </Link>
         </div>
       </div>

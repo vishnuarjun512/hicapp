@@ -18,7 +18,12 @@ import {
   AlertDialogTitle,
 } from "./ui/alert-dialog";
 import Link from "next/link";
-import { followUser, unfollowUser } from "@/lib/(apiCalls)/follow/follow";
+import {
+  followUser,
+  rejectRequest,
+  unfollowUser,
+} from "@/lib/(apiCalls)/follow/follow";
+import { useApi } from "@/lib/(apiCalls)/useApi";
 
 type UserListProps = {
   users: User[];
@@ -38,6 +43,8 @@ export default function UserList({ users: list, onRemove }: UserListProps) {
 
   const [userToUnfollow, setUserToUnfollow] = useState<User | null>(null);
 
+  const { execute } = useApi();
+
   const handleFollow = async (userToFollow: User) => {
     if (!LoggedUser) {
       toast.error("You must be logged in to follow users.");
@@ -45,7 +52,9 @@ export default function UserList({ users: list, onRemove }: UserListProps) {
     }
 
     try {
-      const data = await followUser(LoggedUser.id, userToFollow.id);
+      const data = await execute(() =>
+        followUser(LoggedUser.id, userToFollow.id),
+      );
 
       toast.success("Success: " + data.message);
 
@@ -75,7 +84,9 @@ export default function UserList({ users: list, onRemove }: UserListProps) {
     }
 
     try {
-      const data = await unfollowUser(LoggedUser.id, userToUnfollow.id);
+      const data = await execute(() =>
+        unfollowUser(LoggedUser.id, userToUnfollow.id),
+      );
 
       toast.success("Success: " + data.message);
 
@@ -99,20 +110,9 @@ export default function UserList({ users: list, onRemove }: UserListProps) {
   const handleCancelRequest = async (cancelRequested: User) => {
     if (!LoggedUser) return;
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-      const url = `${baseUrl}/followrequest/${LoggedUser.id}/reject`;
-
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ receiver_id: cancelRequested.id }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error("Failed to Reject Request");
-      }
+      const data = await execute(() =>
+        rejectRequest(LoggedUser.id, cancelRequested.id),
+      );
 
       // Remove from sent requests
       setSentFollowRequests(

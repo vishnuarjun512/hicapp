@@ -1,11 +1,9 @@
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+import { apiFetch } from "../api";
 
 export const followUser = async (sender_id: string, receiver_id: string) => {
-  const res = await fetch(`${BASE_URL}/users/${receiver_id}/follow`, {
+  const url = `/users/${receiver_id}/follow`;
+  const res = await apiFetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({ sender_id }),
   });
 
@@ -19,11 +17,9 @@ export const followUser = async (sender_id: string, receiver_id: string) => {
 };
 
 export const unfollowUser = async (followerId: string, followingId: string) => {
-  const res = await fetch(`${BASE_URL}/users/${followingId}/unfollow`, {
+  const url = `/users/${followingId}/unfollow`;
+  const res = await apiFetch(url, {
     method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({ follower_id: followerId }),
   });
 
@@ -33,5 +29,35 @@ export const unfollowUser = async (followerId: string, followingId: string) => {
     throw new Error(data.message || "Failed to unfollow user");
   }
 
+  return data;
+};
+
+export const acceptRequest = async (senderID: string, receiverID: string) => {
+  const url = `/followrequest/${senderID}/accept`;
+  const res = await apiFetch(url, {
+    method: "POST",
+    body: JSON.stringify({ receiver_id: receiverID }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error("Failed to Reject Request");
+  }
+  return data;
+};
+
+export const rejectRequest = async (senderID: string, receiverID: string) => {
+  const url = `/followrequest/${senderID}/reject`;
+  const res = await apiFetch(url, {
+    method: "POST",
+    body: JSON.stringify({ receiver_id: receiverID }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error("Failed to Reject Request");
+  }
   return data;
 };

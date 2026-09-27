@@ -61,10 +61,10 @@ export default function Page() {
         <div className="mb-8 flex items-end justify-between">
           <div>
             <Badge variant="secondary" className="mb-3">
-              Tuesday, August 25
+              {new Date().toLocaleDateString("sv-SE")}
             </Badge>
             <h1 className="text-3xl font-semibold tracking-tight">
-              Good morning, Maya.
+              Good morning, {user?.name}
             </h1>
             <p className="mt-1 text-muted-foreground">
               Here is what is happening in your world.

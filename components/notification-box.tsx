@@ -111,10 +111,10 @@ const formatNotificationTime = (date: string) => {
 
 const getNotificationText = (notification: Notification) => {
   switch (notification.type) {
-    case "friend_request":
+    case "follow_request":
       return "sent you a friend request.";
 
-    case "friend_request_accepted":
+    case "follow_request_accepted":
       return "accepted your friend request.";
 
     case "post_like":

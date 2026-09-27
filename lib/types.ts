@@ -21,8 +21,8 @@ export type Message = {
 // types/notification.ts
 
 export type NotificationType =
-  | "friend_request"
-  | "friend_request_accepted"
+  | "follow_request"
+  | "follow_request_accepted"
   | "post_like"
   | "post_comment";
 

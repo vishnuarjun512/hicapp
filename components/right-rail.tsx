@@ -1,13 +1,16 @@
 "use client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { suggestions } from "@/lib/social-data";
+
 import Link from "next/link";
 import UserAvatar from "./user-avatar";
 
 import { toast } from "sonner";
 import { Button } from "./ui/button";
+import { useDataStore } from "@/lib/stores/data-store";
 
 export default function RightRail() {
+  const { suggestions } = useDataStore();
+
   return (
     <aside className="sticky top-24 hidden h-fit w-64 shrink-0 xl:block">
       <Card className="border-0 bg-muted/50 shadow-none">

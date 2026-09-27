@@ -1,4 +1,6 @@
 "use client";
+import { navItems, users } from "@/lib/social-data";
+import { useEffect, useMemo, useState } from "react";
 import { currentUser, navItems, users } from "@/lib/social-data";
 import { useMemo, useState } from "react";
 import {
@@ -148,7 +150,7 @@ export default function Navbar() {
           </Link>
           <NotificationBox unreadNotificationCount={unreadNotificationCount} />
           <Link href="/profile">
-            <UserAvatar user={currentUser} />
+            <UserAvatar user={user} />
           </Link>
         </div>
       </div>

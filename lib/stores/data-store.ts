@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Post } from "../social-data";
 import { User } from "./auth-store";
-import { Conversation, Message } from "../types";
+import { Notification } from "../types";
 
 type DataState = {
   posts: Post[];
@@ -13,6 +13,7 @@ type DataState = {
   following: User[];
   followRequests: User[];
   sentFollowRequests: User[];
+  notifications: Notification[];
 
   setPosts: (post: Post[]) => void;
   setSuggestions: (suggestions: User[]) => void;
@@ -20,6 +21,7 @@ type DataState = {
   setFollowing: (following: User[]) => void;
   setFollowRequests: (followRequests: User[]) => void;
   setSentFollowRequests: (sentFollowRequests: User[]) => void;
+  setNotifications: (notifications: Notification[]) => void;
   resetData: () => void;
 };
 
@@ -32,6 +34,7 @@ export const useDataStore = create<DataState>()(
       following: [],
       followRequests: [],
       sentFollowRequests: [],
+      notifications: [],
 
       setPosts: (posts) => set({ posts }),
       setSuggestions: (suggestions) => set({ suggestions }),
@@ -40,6 +43,7 @@ export const useDataStore = create<DataState>()(
       setFollowRequests: (followRequests) => set({ followRequests }),
       setSentFollowRequests: (sentFollowRequests) =>
         set({ sentFollowRequests }),
+      setNotifications: (notifications) => set({ notifications }),
 
       resetData: () =>
         set({
@@ -49,6 +53,7 @@ export const useDataStore = create<DataState>()(
           following: [],
           followRequests: [],
           sentFollowRequests: [],
+          notifications: [],
         }),
     }),
 

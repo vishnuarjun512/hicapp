@@ -1,6 +1,6 @@
 "use client";
 import { currentUser, navItems, users } from "@/lib/social-data";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -12,7 +12,6 @@ import { Button } from "./ui/button";
 import Link from "next/link";
 import {
   Bookmark,
-  Heart,
   Home,
   MessageCircle,
   Search,
@@ -24,15 +23,10 @@ import { Input } from "./ui/input";
 import UserAvatar from "./user-avatar";
 import { Badge } from "./ui/badge";
 import Brand from "./brand";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
 
 import { useMessageStore } from "@/lib/stores/message-store";
-import { useAuthStore } from "@/lib/stores/auth-store";
+import NotificationBox from "./notification-box";
+import { useDataStore } from "@/lib/stores/data-store";
 
 export default function Navbar() {
   const iconMap = {
@@ -55,19 +49,19 @@ export default function Navbar() {
     [search],
   );
 
-  const { user } = useAuthStore();
   const { conversations } = useMessageStore();
-  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+  const { notifications } = useDataStore();
 
-  useEffect(() => {
-    setUnreadMessageCount(
-      conversations
-        ? conversations.reduce((accumulator, conversation) => {
-            return accumulator + conversation.unread;
-          }, 0)
-        : 0,
-    );
-  }, [user?.id]);
+  const unreadMessageCount =
+    conversations?.reduce(
+      (total, conversation) => total + conversation.unread,
+      0,
+    ) ?? 0;
+
+  const unreadNotificationCount = notifications.reduce(
+    (total, notification) => total + (notification.is_read ? 0 : 1),
+    0,
+  );
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
@@ -152,41 +146,7 @@ export default function Navbar() {
               </Badge>
             </Button>
           </Link>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Notifications"
-                />
-              }
-            >
-              <Heart />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-80 mt-5" align="end">
-              <DropdownMenuItem className="flex items-center gap-3">
-                <UserAvatar user={users[0]} size="size-8" />
-                <div>
-                  <p className="text-sm">
-                    <span className="font-semibold">{users[0].name}</span> liked
-                    your post.
-                  </p>
-                  <p className="text-xs text-muted-foreground">2 hours ago</p>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="flex items-center gap-3">
-                <UserAvatar user={users[1]} size="size-8" />
-                <div>
-                  <p className="text-sm">
-                    <span className="font-semibold">{users[1].name}</span> liked
-                    your post.
-                  </p>
-                  <p className="text-xs text-muted-foreground">5 hours ago</p>
-                </div>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <NotificationBox unreadNotificationCount={unreadNotificationCount} />
           <Link href="/profile">
             <UserAvatar user={currentUser} />
           </Link>

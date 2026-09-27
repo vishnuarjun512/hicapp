@@ -1,8 +1,7 @@
 "use client";
+
 import { navItems, users } from "@/lib/social-data";
-import { useEffect, useMemo, useState } from "react";
-import { currentUser, navItems, users } from "@/lib/social-data";
-import { useMemo, useState } from "react";
+
 import {
   Sheet,
   SheetContent,
@@ -29,6 +28,8 @@ import Brand from "./brand";
 import { useMessageStore } from "@/lib/stores/message-store";
 import NotificationBox from "./notification-box";
 import { useDataStore } from "@/lib/stores/data-store";
+import { useMemo, useState } from "react";
+import { useAuthStore } from "@/lib/stores/auth-store";
 
 export default function Navbar() {
   const iconMap = {
@@ -51,6 +52,7 @@ export default function Navbar() {
     [search],
   );
 
+  const { user } = useAuthStore();
   const { conversations } = useMessageStore();
   const { notifications } = useDataStore();
 
@@ -149,9 +151,7 @@ export default function Navbar() {
             </Button>
           </Link>
           <NotificationBox unreadNotificationCount={unreadNotificationCount} />
-          <Link href="/profile">
-            <UserAvatar user={user} />
-          </Link>
+          <Link href="/profile">{user && <UserAvatar user={user} />}</Link>
         </div>
       </div>
     </header>

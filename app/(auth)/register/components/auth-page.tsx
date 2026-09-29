@@ -46,7 +46,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
       password: password,
     });
 
-    const url = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/${register ? "register" : "login"}`;
+    const url = `/auth/${register ? "register" : "login"}`;
 
     try {
       const response = await apiFetch(url, {

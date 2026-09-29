@@ -211,6 +211,8 @@ export default function EditProfile({ trigger }: EditProfileProps) {
 
       const data = await execute(() => updateProfileData(user.id, form));
 
+      console.log(data?.profilePicUrl);
+
       /*
        * 4. Update local Zustand state
        */
@@ -220,7 +222,7 @@ export default function EditProfile({ trigger }: EditProfileProps) {
         name: name.trim(),
         handle: handle.trim(),
         bio: bio.trim(),
-        profile_pic_url: data.profilePicUrl,
+        profile_pic_url: data?.profilePicUrl || profilePicUrl,
         verified: name.trim() !== "" && handle.trim() !== "",
       });
 

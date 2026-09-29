@@ -13,7 +13,6 @@ export default function ConversationList({
   selectedConversation,
   onSelectConversation,
 }: ConversationListProps) {
-  console.log(conversations);
   return (
     <div className="flex min-h-0 flex-col border-r h-full">
       <div className="border-b p-4">

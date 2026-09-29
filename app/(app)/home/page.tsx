@@ -41,12 +41,12 @@ export default function Page() {
       try {
         const data = await execute(() => getHomePageData());
 
-        setPosts(data.posts);
-        setSuggestions(data.suggested);
-        setFollowers(data.followers);
-        setFollowing(data.following);
-        setConversations(data.conversations);
-        setNotifications(data.notifications);
+        setPosts(data?.posts ?? []);
+        setSuggestions(data?.suggested ?? []);
+        setFollowers(data?.followers ?? []);
+        setFollowing(data?.following ?? []);
+        setConversations(data?.conversations ?? []);
+        setNotifications(data?.notifications ?? []);
       } catch (error) {
         console.log("Profile Fetch Request Failed -> ", error);
       }

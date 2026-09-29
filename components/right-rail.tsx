@@ -10,7 +10,6 @@ import { useDataStore } from "@/lib/stores/data-store";
 
 export default function RightRail() {
   const { suggestions } = useDataStore();
-
   return (
     <aside className="sticky top-24 hidden h-fit w-64 shrink-0 xl:block">
       <Card className="border-0 bg-muted/50 shadow-none">
@@ -26,7 +25,7 @@ export default function RightRail() {
           {suggestions &&
             suggestions.map((user) => (
               <div
-                key={user.handle}
+                key={user.id}
                 className="flex items-center justify-between gap-3"
               >
                 <div

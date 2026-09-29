@@ -4,50 +4,53 @@ import { Card, CardContent } from "@/components/ui/card";
 import UserAvatar from "@/components/user-avatar";
 import { formatNumber } from "@/lib/social-data";
 import { Check, MessageCircle, Share2 } from "lucide-react";
-import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import EditProfile from "./edit-profile";
 
 import ProfileVerificationStatus from "./profile-verification";
 import { useAuthStore, User } from "@/lib/stores/auth-store";
 import { useDataStore } from "@/lib/stores/data-store";
-import { followUser, unfollowUser } from "@/lib/(apiCalls)/follow/follow";
+import {
+  followUser,
+  rejectRequest,
+  unfollowUser,
+} from "@/lib/(apiCalls)/follow/follow";
 
 import { useRouter } from "next/navigation";
 import { createConversation } from "@/lib/(apiCalls)/message/message-api";
 import { useApi } from "@/lib/(apiCalls)/useApi";
 
+type PageRelation = "following" | "requested" | "none";
 export default function ProfileHeader({
   user,
   postCount = 0,
   followersCount = 0,
   followingCount = 0,
   own = false,
+  relation,
+  handleSetRelation,
 }: {
   user: User;
   postCount: number;
   followersCount: number;
+  relation: any;
   followingCount: number;
   own?: boolean;
+  handleSetRelation: (string: PageRelation) => void;
 }) {
   const router = useRouter();
-  const [following, setFollowing] = useState(false);
+
   const { user: LoggedUser } = useAuthStore();
-  const { following: authFollowing } = useDataStore();
   const { execute } = useApi();
 
-  useEffect(() => {
-    if (!user) {
-      return;
-    }
-
-    if (
-      authFollowing.length > 0 &&
-      authFollowing.some((follow) => follow.id == user.id)
-    ) {
-      setFollowing(true);
-    }
-  }, [authFollowing]);
+  const {
+    sentFollowRequests,
+    setSentFollowRequests,
+    setSuggestions,
+    suggestions,
+    following,
+    setFollowing,
+  } = useDataStore();
 
   const handleFollow = async () => {
     if (!LoggedUser) {
@@ -57,7 +60,22 @@ export default function ProfileHeader({
 
     try {
       const data = await followUser(LoggedUser.id, user.id);
+      if (data?.error) {
+        throw new Error(data?.message);
+      }
 
+      // Remove from Suggestions
+      setSuggestions(
+        suggestions.filter((singleUser) => singleUser.id != user.id),
+      );
+
+      if (data.request) {
+        handleSetRelation("requested");
+        setSentFollowRequests([...sentFollowRequests, user]);
+      } else {
+        handleSetRelation("following");
+        setFollowing([...following, user]);
+      }
       toast.success("Success: " + data.message);
     } catch (error) {
       toast.error(
@@ -79,6 +97,8 @@ export default function ProfileHeader({
       if (!data?.error) {
         toast.success("Success: " + data.message);
       }
+
+      handleSetRelation("none");
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to unfollow user.",
@@ -111,6 +131,29 @@ export default function ProfileHeader({
     }
   };
 
+  const handleCancelRequest = async () => {
+    if (!LoggedUser) return;
+    try {
+      const data = await execute(() => rejectRequest(LoggedUser.id, user.id));
+      handleSetRelation("none");
+
+      // Remove from sent requests
+      setSentFollowRequests(
+        sentFollowRequests.filter((request) => request.id !== user.id),
+      );
+
+      // Add back to suggestions
+      setSuggestions([...suggestions, user]);
+      toast.success("Success: " + data.message);
+      console.log("Response Data -> ", data);
+    } catch (error) {
+      toast.error("Failed to reject request. Please try again.");
+      console.log("Reject Follow Request Error = > ", error);
+    }
+  };
+
+  console.log("Relation", relation);
+
   return (
     <div className="space-y-4">
       <Card className="overflow-hidden">
@@ -134,11 +177,21 @@ export default function ProfileHeader({
               ) : (
                 <div className="flex gap-2">
                   <Button
-                    onClick={() =>
-                      following ? handleUnfollow() : handleFollow()
-                    }
+                    onClick={() => {
+                      if (relation === "following") {
+                        handleUnfollow();
+                      } else if (relation === "requested") {
+                        handleCancelRequest();
+                      } else {
+                        handleFollow();
+                      }
+                    }}
                   >
-                    {following ? "Unfollow" : "Follow"}
+                    {relation === "following"
+                      ? "Unfollow"
+                      : relation === "requested"
+                        ? "Cancel Request"
+                        : "Follow"}
                   </Button>
                   <Button onClick={handleMessage}>
                     <MessageCircle data-icon="inline-start" />

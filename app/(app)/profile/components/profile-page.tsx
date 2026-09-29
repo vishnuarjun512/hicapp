@@ -13,6 +13,8 @@ import { useDataStore } from "@/lib/stores/data-store";
 import { useApi } from "@/lib/(apiCalls)/useApi";
 import { getProfileData } from "@/lib/(apiCalls)/user/user";
 
+type PageRelation = "following" | "requested" | "none";
+
 export default function ProfilePage({ userID }: { userID: string }) {
   const { user: authUser } = useAuthStore();
 
@@ -22,10 +24,17 @@ export default function ProfilePage({ userID }: { userID: string }) {
   const [pageFollowing, setPageFollowing] = useState<User[]>([]);
   const [pagePosts, setPagePosts] = useState<Post[]>([]);
   const [pageUser, setPageUser] = useState<User | null>(null);
+
+  const [pageRelation, setPageRelation] = useState<PageRelation>("none");
   const [own, setOwn] = useState(false);
   const [canViewContent, setCanViewContent] = useState(false);
 
   const { execute } = useApi();
+
+  const handleSetRelation = (string: PageRelation) => {
+    setCanViewContent(own || !pageUser?.is_private || string == "following");
+    setPageRelation(string);
+  };
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -37,8 +46,12 @@ export default function ProfilePage({ userID }: { userID: string }) {
         setPagePosts(data.posts ?? []);
         setPageFollowers(data.followers ?? []);
         setPageFollowing(data.following ?? []);
-        const isFollower =
-          !!authUser && data.followers.some((f: User) => f.id === authUser.id);
+        setPageRelation(
+          data.follow ? "following" : data.request ? "requested" : "none",
+        );
+        data.request;
+        const isFollower = data.follow;
+        // !!authUser && data.followers.some((f: User) => f.id === authUser.id);
 
         setCanViewContent(own || !data.user?.is_private || isFollower);
       } catch (error) {
@@ -73,6 +86,8 @@ export default function ProfilePage({ userID }: { userID: string }) {
     <AppShell>
       <div className="mx-auto max-w-3xl">
         <ProfileHeader
+          handleSetRelation={handleSetRelation}
+          relation={pageRelation}
           user={pageUser}
           postCount={pagePosts.length}
           followersCount={pageFollowers.length}

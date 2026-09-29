@@ -145,7 +145,7 @@ export default function UserList({ users: list, onRemove }: UserListProps) {
               (requestedUser) => requestedUser.id === user.id,
             );
             return (
-              <Card key={user.handle}>
+              <Card key={user.id + user.handle}>
                 <CardContent className="flex items-center gap-3 p-4">
                   <Link href={`/account/${user.id}`}>
                     <UserAvatar user={user} />

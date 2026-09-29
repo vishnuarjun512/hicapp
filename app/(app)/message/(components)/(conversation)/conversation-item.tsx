@@ -30,7 +30,7 @@ export default function ConversationItem({
       <UserAvatar user={participants[0]} size="size-9" />
 
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium">{participants[0].name}</p>
+        <p className="text-sm font-medium">{participants[0]?.name}</p>
 
         <p className="truncate text-xs text-muted-foreground">
           {conversation.preview}

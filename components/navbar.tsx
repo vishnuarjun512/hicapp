@@ -97,7 +97,9 @@ export default function Navbar() {
             </Button>
           </Link>
           <NotificationBox unreadNotificationCount={unreadNotificationCount} />
-          <Link href="/profile">{user && <UserAvatar user={user} />}</Link>
+          <Link className="ml-2" href="/profile">
+            {user && <UserAvatar user={user} />}
+          </Link>
         </div>
       </div>
     </header>

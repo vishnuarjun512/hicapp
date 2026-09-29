@@ -23,37 +23,40 @@ export default function RightRail() {
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          {suggestions.map((user) => (
-            <div
-              key={user.handle}
-              className="flex items-center justify-between gap-3"
-            >
+          {suggestions &&
+            suggestions.map((user) => (
               <div
                 key={user.handle}
                 className="flex items-center justify-between gap-3"
               >
-                <Link href={`/account/${user.id}`}>
-                  <UserAvatar user={user} size="size-9" />
-                </Link>
-                <Link href={`/account/${user.id}`}>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{user.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      @{user.handle}
-                    </p>
-                  </div>
-                </Link>
-              </div>
+                <div
+                  key={user.handle}
+                  className="flex items-center justify-between gap-3"
+                >
+                  <Link href={`/account/${user.id}`}>
+                    <UserAvatar user={user} size="size-9" />
+                  </Link>
+                  <Link href={`/account/${user.id}`}>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">
+                        {user.name}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        @{user.handle}
+                      </p>
+                    </div>
+                  </Link>
+                </div>
 
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => toast.success(`Following @${user.handle}`)}
-              >
-                Follow
-              </Button>
-            </div>
-          ))}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => toast.success(`Following @${user.handle}`)}
+                >
+                  Follow
+                </Button>
+              </div>
+            ))}
         </CardContent>
       </Card>
       <Card className="mt-4 border-0 bg-primary text-primary-foreground shadow-none">

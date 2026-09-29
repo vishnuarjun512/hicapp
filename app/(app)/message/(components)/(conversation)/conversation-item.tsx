@@ -18,6 +18,7 @@ export default function ConversationItem({
   const participants = conversation.participants.filter(
     (p) => p.id != user?.id,
   );
+  console.log(participants);
   return (
     <button
       type="button"

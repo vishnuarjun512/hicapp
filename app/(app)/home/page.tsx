@@ -18,7 +18,7 @@ import { useAuthStore } from "@/lib/stores/auth-store";
 import { useDataStore } from "@/lib/stores/data-store";
 import { useMessageStore } from "@/lib/stores/message-store";
 import { useApi } from "@/lib/(apiCalls)/useApi";
-import { getProfileData } from "@/lib/(apiCalls)/user/user";
+import { getHomePageData, getProfileData } from "@/lib/(apiCalls)/user/user";
 
 export default function Page() {
   const { user } = useAuthStore();
@@ -39,7 +39,7 @@ export default function Page() {
 
     const getUserData = async () => {
       try {
-        const data = await execute(() => getProfileData(user.id));
+        const data = await execute(() => getHomePageData());
 
         setPosts(data.posts);
         setSuggestions(data.suggested);

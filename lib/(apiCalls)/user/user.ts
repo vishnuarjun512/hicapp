@@ -18,6 +18,24 @@ export const getProfileData = async (userId: string) => {
   }
 };
 
+export const getHomePageData = async () => {
+  try {
+    const response = await apiFetch(`/home`, {
+      method: "GET",
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to Home Page Data");
+    }
+
+    return data;
+  } catch (error) {
+    console.log("Home Page Fetch Request Failed -> ", error);
+  }
+};
+
 export const updateProfileData = async (userId: string, form: object) => {
   try {
     const response = await apiFetch(`/user/edit-profile/${userId}`, {

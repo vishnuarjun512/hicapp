@@ -159,7 +159,7 @@ export default function MessageList({
   );
 
   const lastReadMessageId = useMemo(() => {
-    const lastReadAt = otherParticipant?.lastReadAt;
+    const lastReadAt = otherParticipant?.lastMessageAt;
 
     if (!lastReadAt) {
       return null;
@@ -182,7 +182,7 @@ export default function MessageList({
     }
 
     return null;
-  }, [messages, user?.id, otherParticipant?.lastReadAt]);
+  }, [messages, user?.id, otherParticipant?.lastMessageAt]);
 
   // ============================================================
   // AUTOMATICALLY SCROLL TO NEWEST MESSAGE
@@ -402,9 +402,9 @@ export default function MessageList({
                     {/* SEEN */}
                     {/* ================================================== */}
 
-                    {showSeen && otherParticipant?.lastReadAt && (
+                    {showSeen && otherParticipant?.lastMessageAt && (
                       <span className="text-[10px] text-muted-foreground">
-                        {formatSeenTime(otherParticipant.lastReadAt)}
+                        {formatSeenTime(otherParticipant.lastMessageAt)}
                       </span>
                     )}
 

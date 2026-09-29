@@ -31,9 +31,7 @@ export async function getConversationMessages(
   return data;
 }
 
-export async function createConversation(
-  user_id: string,
-): Promise<Conversation[]> {
+export async function createConversation(user_id: string) {
   const response = await apiFetch(`/conversation`, {
     method: "POST",
     body: JSON.stringify({
@@ -43,7 +41,7 @@ export async function createConversation(
 
   const data = await response.json();
 
-  return data.conversation;
+  return data;
 }
 
 export async function sendMessage(

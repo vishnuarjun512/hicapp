@@ -15,6 +15,7 @@ import { followUser, unfollowUser } from "@/lib/(apiCalls)/follow/follow";
 
 import { useRouter } from "next/navigation";
 import { createConversation } from "@/lib/(apiCalls)/message/message-api";
+import { useApi } from "@/lib/(apiCalls)/useApi";
 
 export default function ProfileHeader({
   user,
@@ -33,6 +34,7 @@ export default function ProfileHeader({
   const [following, setFollowing] = useState(false);
   const { user: LoggedUser } = useAuthStore();
   const { following: authFollowing } = useDataStore();
+  const { execute } = useApi();
 
   useEffect(() => {
     if (!user) {
@@ -73,9 +75,10 @@ export default function ProfileHeader({
     }
 
     try {
-      const data = await unfollowUser(LoggedUser.id, user.id);
-
-      toast.success("Success: " + data.message);
+      const data = await execute(() => unfollowUser(LoggedUser.id, user.id));
+      if (!data?.error) {
+        toast.success("Success: " + data.message);
+      }
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to unfollow user.",
@@ -92,15 +95,19 @@ export default function ProfileHeader({
     }
 
     try {
-      const data = await createConversation(user.id);
+      const data = await execute(() => createConversation(user.id));
+      if (data?.error) {
+        throw new Error(data.message);
+      }
+
       toast.success("Created Conversation");
       router.push("/message");
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to unfollow user.",
+        error instanceof Error ? error.message : "Failed to Create Message.",
       );
 
-      console.log(error);
+      console.error(error);
     }
   };
 

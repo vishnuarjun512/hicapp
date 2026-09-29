@@ -19,22 +19,14 @@ export const getComments = async (postId: string) => {
 };
 
 export const createComment = async (postId: string, comment: string) => {
-  try {
-    const response = await apiFetch(`/comment/${postId}`, {
-      method: "POST",
-      body: JSON.stringify({ body: comment }),
-    });
+  const response = await apiFetch(`/comment/${postId}`, {
+    method: "POST",
+    body: JSON.stringify({ body: comment }),
+  });
 
-    const data = await response.json();
+  const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to Create Comment");
-    }
-
-    return data;
-  } catch (error) {
-    console.log("Create Comment Request Failed -> ", error);
-  }
+  return data;
 };
 
 export const deleteComment = async (commentID: string) => {

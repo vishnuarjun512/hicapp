@@ -101,6 +101,10 @@ export default function PostCommentsSheet({
 
       const data = await execute(() => createComment(postId, trimmedComment));
 
+      if (data?.error) {
+        throw new Error(data.message);
+      }
+
       const { newComment } = data;
 
       setComments((current) => [...current, newComment]);
@@ -116,6 +120,9 @@ export default function PostCommentsSheet({
       );
       setComment("");
     } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to add comment.",
+      );
       console.error("Failed to add comment:", error);
     } finally {
       setSubmitting(false);

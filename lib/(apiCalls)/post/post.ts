@@ -20,21 +20,13 @@ export const createPost = async (payload: object, userId: string) => {
 };
 
 export const deletePost = async (postID: string) => {
-  try {
-    const response = await apiFetch(`/post/${postID}`, {
-      method: "DELETE",
-    });
+  const response = await apiFetch(`/post/${postID}`, {
+    method: "DELETE",
+  });
 
-    const data = await response.json();
+  const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to Delete Comment");
-    }
-
-    return data;
-  } catch (error) {
-    console.log("Delete Comment Request Failed -> ", error);
-  }
+  return data;
 };
 
 export const getPostImageURLS = async (contentType: string) => {

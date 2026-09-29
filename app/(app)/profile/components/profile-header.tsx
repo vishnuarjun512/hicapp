@@ -152,8 +152,6 @@ export default function ProfileHeader({
     }
   };
 
-  console.log("Relation", relation);
-
   return (
     <div className="space-y-4">
       <Card className="overflow-hidden">

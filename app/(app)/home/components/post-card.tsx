@@ -182,13 +182,25 @@ export default function PostCard({
   };
 
   const handleDelete = async () => {
-    const { message } = await execute(() => deletePost(post.id));
+    try {
+      const { error, message } = await execute(() => deletePost(post.id));
 
-    onDelete?.(post);
+      if (error) {
+        throw new Error(message || "Failed to Delete Comment");
+      }
 
-    setDeleteDialogOpen(false);
+      onDelete?.(post);
 
-    toast.success(message);
+      setDeleteDialogOpen(false);
+
+      toast.success(message);
+    } catch (error) {
+      console.log("Delete Post Request Failed -> ", error);
+
+      toast.error(
+        error instanceof Error ? error.message : "Failed to follow user.",
+      );
+    }
   };
 
   const handleCopyLink = async () => {

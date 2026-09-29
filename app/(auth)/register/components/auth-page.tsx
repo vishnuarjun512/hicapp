@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { validateForm } from "@/lib/utils";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { apiFetch } from "@/lib/(apiCalls)/api";
 
 export function AuthPage({ register = false }: { register?: boolean }) {
   const router = useRouter();
@@ -45,10 +46,10 @@ export function AuthPage({ register = false }: { register?: boolean }) {
       password: password,
     });
 
-    const url = `/api/${register ? "register" : "login"}`;
+    const url = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/${register ? "register" : "login"}`;
 
     try {
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

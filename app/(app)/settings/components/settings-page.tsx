@@ -10,12 +10,15 @@ import { Separator } from "@/components/ui/separator";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { toggleAccountPrivate } from "@/lib/(apiCalls)/user/user";
+import { useApi } from "@/lib/(apiCalls)/useApi";
 
 export function SettingsPage() {
   const { user, setUser } = useAuthStore();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { execute } = useApi();
 
   useEffect(() => {
     if (user?.email) {
@@ -34,24 +37,7 @@ export function SettingsPage() {
     });
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/user/toggleIsPrivate/${user.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            is_private,
-          }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to update privacy");
-      }
+      const data = await execute(() => toggleAccountPrivate(is_private));
 
       toast.success(data.message);
     } catch (error) {

@@ -12,8 +12,8 @@ import UserList from "@/components/user-list";
 import { useAuthStore, User } from "@/lib/stores/auth-store";
 import { useDataStore } from "@/lib/stores/data-store";
 import { useApi } from "@/lib/(apiCalls)/useApi";
-import { apiFetch } from "@/lib/(apiCalls)/api";
 import { getFriendsApiCall } from "@/lib/(apiCalls)/friends/friends";
+import { acceptRequest, rejectRequest } from "@/lib/(apiCalls)/follow/follow";
 
 export default function FriendsPage() {
   const { user } = useAuthStore();
@@ -51,24 +51,10 @@ export default function FriendsPage() {
     }
   }, [user]);
 
-  const handleAccept = async (sender: User) => {
+  const handleAcceptRequest = async (sender: User) => {
     if (!user) return;
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-      const url = `${baseUrl}/followrequest/${sender.id}/accept`;
-
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ receiver_id: user.id }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error("Failed to Accept Request");
-      }
-
+      const data = await execute(() => acceptRequest(sender.id, user.id));
       // Remove from Follow Requests
       setFollowRequests(
         followRequests.filter((item) => item.handle !== sender.handle),
@@ -83,23 +69,10 @@ export default function FriendsPage() {
     }
   };
 
-  const rejectRequest = async (sender: User) => {
+  const handleRejectRequest = async (sender: User) => {
     if (!user) return;
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-      const url = `${baseUrl}/followrequest/${sender.id}/reject`;
-
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ receiver_id: user.id }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error("Failed to Reject Request");
-      }
+      const data = await execute(() => rejectRequest(sender.id, user.id));
 
       setFollowRequests(
         followRequests.filter((item) => item.handle !== sender.handle),
@@ -147,13 +120,13 @@ export default function FriendsPage() {
                         @{user.handle} · 8 mutual friends
                       </p>
                     </div>
-                    <Button size="sm" onClick={() => handleAccept(user)}>
+                    <Button size="sm" onClick={() => handleAcceptRequest(user)}>
                       Accept
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => rejectRequest(user)}
+                      onClick={() => handleRejectRequest(user)}
                     >
                       Reject
                     </Button>

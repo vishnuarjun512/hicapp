@@ -53,3 +53,20 @@ export const getProfileImageUploadUrl = async (contentType: string) => {
 
   return data;
 };
+
+export const toggleAccountPrivate = async (is_private: boolean) => {
+  const url = `/user/toggleIsPrivate/`;
+  const response = await apiFetch(url, {
+    method: "PATCH",
+    body: JSON.stringify({
+      is_private,
+    }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to update privacy");
+  }
+
+  return data;
+};

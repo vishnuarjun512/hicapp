@@ -1,3 +1,4 @@
+"use client";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { Sparkles } from "lucide-react";
 import Link from "next/link";

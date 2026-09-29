@@ -19,11 +19,13 @@ export function proxy(request: NextRequest) {
   //   isPublicRoute,
   // );
 
+  console.log(isPublicRoute ? "Public Route" : "Private Route");
+
   // No token + trying to access a protected route
-  if (!accessToken && !isPublicRoute) {
-    console.log("No Token Found! Rerouting...");
-    return NextResponse.redirect(new URL("/logout", request.url));
-  }
+  // if (!accessToken && !isPublicRoute) {
+  //   console.log("No Token Found! Rerouting...");
+  //   return NextResponse.redirect(new URL("/logout", request.url));
+  // }
 
   return NextResponse.next();
 }

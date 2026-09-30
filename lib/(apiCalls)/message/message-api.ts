@@ -1,5 +1,5 @@
 import { apiFetch } from "../api";
-import { Conversation, Message } from "../../types";
+import { Message } from "../../types";
 
 export async function getConversations() {
   const url = "/conversation";
@@ -10,6 +10,14 @@ export async function getConversations() {
   const data = await response.json();
 
   return data.conversations;
+}
+
+export async function deleteConversation(conversationId: string) {
+  const response = await apiFetch(`/conversation/${conversationId}`, {
+    method: "DELETE",
+  });
+
+  return await response.json();
 }
 
 export async function getConversationMessages(

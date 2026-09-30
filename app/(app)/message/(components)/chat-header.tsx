@@ -26,6 +26,9 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useApi } from "@/lib/(apiCalls)/useApi";
+import { deleteConversation } from "@/lib/(apiCalls)/message/message-api";
+import { useRouter } from "next/navigation";
 
 type ChatHeaderProps = {
   conversation: Conversation;
@@ -35,10 +38,13 @@ export default function ChatHeader({ conversation }: ChatHeaderProps) {
   const { user } = useAuthStore();
 
   const participant = conversation.participants.find((p) => p.id !== user?.id);
+  const router = useRouter();
 
   if (!participant) {
     return null;
   }
+
+  const { execute } = useApi();
 
   const handleSearch = () => {
     // TODO: Open message search
@@ -56,8 +62,7 @@ export default function ChatHeader({ conversation }: ChatHeaderProps) {
   };
 
   const handleProfile = () => {
-    // TODO: Navigate to profile
-    toast.info("Open profile");
+    router.push("/account/" + participant.id);
   };
 
   const handleArchive = () => {
@@ -70,9 +75,21 @@ export default function ChatHeader({ conversation }: ChatHeaderProps) {
     toast.info("Clear chat");
   };
 
-  const handleDeleteConversation = () => {
-    // TODO: Clear messages
-    toast.success("Deleted Conversation");
+  const handleDeleteConversation = async () => {
+    try {
+      const { error, message, id } = await execute(() =>
+        deleteConversation(conversation.id),
+      );
+
+      console.log(error, message, id);
+      if (!error) {
+        toast.success("Deleted Conversation");
+        return;
+      }
+      // TODO: Clear messages
+    } catch (error) {
+      toast.error("Deleting Conversation Failed");
+    }
   };
 
   const handleBlock = () => {

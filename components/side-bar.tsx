@@ -16,8 +16,8 @@ import {
 } from "lucide-react";
 
 import { useMessageStore } from "@/lib/stores/message-store";
-import { useEffect, useState } from "react";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { useDataStore } from "@/lib/stores/data-store";
 
 export default function Sidebar() {
   const iconMap = {
@@ -31,24 +31,19 @@ export default function Sidebar() {
 
   const { conversations } = useMessageStore();
   const { user } = useAuthStore();
+  const { followRequests } = useDataStore();
 
-  const [messageCount, setMessageCount] = useState(0);
-  useEffect(() => {
-    if (!user) {
-      return;
-    }
+  const messageCount = user
+    ? (conversations?.reduce(
+        (total, conversation) => total + (conversation.unread ?? 0),
+        0,
+      ) ?? 0)
+    : 0;
 
-    const value =
-      conversations && conversations?.length > 0
-        ? conversations?.reduce(
-            (total, conversation) => total + conversation.unread,
-            0,
-          )
-        : 0;
-    setMessageCount(value);
-  }, [user]);
+  const friendRequestCount = followRequests?.length ?? 0;
 
   const pathname = usePathname();
+
   return (
     <aside className="sticky top-24 hidden h-fit w-52 shrink-0 lg:block">
       <nav className="flex flex-col gap-1">
@@ -65,12 +60,22 @@ export default function Sidebar() {
             >
               <Icon className="size-4" />
               {item.label}
+
               {item.label === "Messages" && messageCount > 0 && (
                 <Badge
                   variant={active ? "secondary" : "default"}
                   className="ml-auto size-5 justify-center rounded-full p-0 text-[10px]"
                 >
                   {messageCount}
+                </Badge>
+              )}
+
+              {item.label === "Friends" && friendRequestCount > 0 && (
+                <Badge
+                  variant={active ? "secondary" : "default"}
+                  className="ml-auto size-5 justify-center rounded-full p-0 text-[10px]"
+                >
+                  {friendRequestCount}
                 </Badge>
               )}
             </Link>

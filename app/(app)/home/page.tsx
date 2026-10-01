@@ -18,7 +18,7 @@ import { useAuthStore } from "@/lib/stores/auth-store";
 import { useDataStore } from "@/lib/stores/data-store";
 import { useMessageStore } from "@/lib/stores/message-store";
 import { useApi } from "@/lib/(apiCalls)/useApi";
-import { getHomePageData, getProfileData } from "@/lib/(apiCalls)/user/user";
+import { getHomePageData } from "@/lib/(apiCalls)/user/user";
 
 export default function Page() {
   const { user } = useAuthStore();
@@ -30,6 +30,7 @@ export default function Page() {
     setFollowing,
     setSuggestions,
     setNotifications,
+    setFollowRequests,
   } = useDataStore();
   const { setConversations } = useMessageStore();
   const { execute } = useApi();
@@ -47,6 +48,7 @@ export default function Page() {
         setFollowing(data?.following ?? []);
         setConversations(data?.conversations ?? []);
         setNotifications(data?.notifications ?? []);
+        setFollowRequests(data.followRequests ?? []);
       } catch (error) {
         console.log("Profile Fetch Request Failed -> ", error);
       }

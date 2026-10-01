@@ -7,6 +7,7 @@ import { searchCall } from "@/lib/(apiCalls)/search/searchCall";
 import UserList from "@/components/user-list";
 import { User } from "@/lib/stores/auth-store";
 import { Post } from "@/lib/social-data";
+import PostCard from "../home/components/post-card";
 
 export default function SearchContent() {
   const searchParams = useSearchParams();
@@ -138,54 +139,7 @@ export default function SearchContent() {
         ) : (
           <div className="space-y-4">
             {posts.map((post) => (
-              <article
-                key={post.id}
-                className="space-y-3 rounded-lg border p-4"
-              >
-                {/* Author */}
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-muted">
-                    {post.author.profile_pic_url && (
-                      <img
-                        src={post.author.profile_pic_url}
-                        alt={post.author.name}
-                        className="h-full w-full object-cover"
-                      />
-                    )}
-                  </div>
-
-                  <div>
-                    <h3 className="font-semibold">{post.author.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      @{post.author.handle}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Post Content */}
-                <p className="whitespace-pre-wrap text-sm">{post.body}</p>
-
-                {/* Post Images */}
-                {post.images?.length > 0 && (
-                  <div className="grid grid-cols-2 gap-2">
-                    {post.images.map((image) => (
-                      <img
-                        key={image.id}
-                        src={image.url}
-                        alt="Post image"
-                        className="h-48 w-full rounded-lg object-cover"
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {/* Post Metadata */}
-                <div className="flex items-center gap-4 border-t pt-3 text-sm text-muted-foreground">
-                  <span>{post.likes} likes</span>
-                  <span>{post.comments} comments</span>
-                  <span>{new Date(post.created_at).toLocaleDateString()}</span>
-                </div>
-              </article>
+              <PostCard key={post.id} post={post} />
             ))}
           </div>
         )}
@@ -193,3 +147,50 @@ export default function SearchContent() {
     </div>
   );
 }
+
+const PostCardCustom = ({ posts }: { posts: any }) =>
+  posts.map((post: any) => (
+    <article key={post.id} className="space-y-3 rounded-lg border p-4">
+      {/* Author */}
+      <div className="flex items-center gap-3">
+        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-muted">
+          {post.author.profile_pic_url && (
+            <img
+              src={post.author.profile_pic_url}
+              alt={post.author.name}
+              className="h-full w-full object-cover"
+            />
+          )}
+        </div>
+
+        <div>
+          <h3 className="font-semibold">{post.author.name}</h3>
+          <p className="text-sm text-muted-foreground">@{post.author.handle}</p>
+        </div>
+      </div>
+
+      {/* Post Content */}
+      <p className="whitespace-pre-wrap text-sm">{post.body}</p>
+
+      {/* Post Images */}
+      {post.images?.length > 0 && (
+        <div className="grid grid-cols-2 gap-2">
+          {post.images.map((image: any) => (
+            <img
+              key={image.id}
+              src={image.url}
+              alt="Post image"
+              className="h-48 w-full rounded-lg object-cover"
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Post Metadata */}
+      <div className="flex items-center gap-4 border-t pt-3 text-sm text-muted-foreground">
+        <span>{post.likes} likes</span>
+        <span>{post.comments} comments</span>
+        <span>{new Date(post.created_at).toLocaleDateString()}</span>
+      </div>
+    </article>
+  ));

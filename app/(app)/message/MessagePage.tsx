@@ -93,6 +93,8 @@ export default function MessagesPage() {
 
   const { connected, sendMessageWs } = useWebSocket();
 
+  console.log(messagesByConversation);
+
   return (
     <AppShell>
       <div className="mx-auto max-w-4xl">

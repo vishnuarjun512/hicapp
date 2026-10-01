@@ -34,7 +34,14 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const { execute } = useApi();
 
   useEffect(() => {
-    const socket = new WebSocket("ws://localhost:4000");
+    const wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
+
+    if (!wsUrl) {
+      console.error("WebSocket URL is missing");
+      return;
+    }
+
+    const socket = new WebSocket(wsUrl);
 
     socketRef.current = socket;
 
@@ -114,7 +121,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
       socketRef.current = null;
     };
-  }, [receivedMessage, updateParticipantReadState]);
+  }, []);
 
   const sendMessageWs = (message: any) => {
     try {

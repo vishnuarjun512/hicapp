@@ -82,7 +82,7 @@ import { useApi } from "@/lib/(apiCalls)/useApi";
 type PostCardProps = {
   post: Post;
 
-  onChange: (post: Post) => void;
+  onChange?: (post: Post) => void;
 
   onDelete?: (post: Post) => void;
   onEdit?: (post: Post) => void;
@@ -136,7 +136,7 @@ export default function PostCard({
   const handleLike = async (postId: string) => {
     post.liked ? await unlikePost(postId) : await likePost(postId);
 
-    onChange({
+    onChange?.({
       ...post,
       liked: !post.liked,
       likes: post.liked ? post.likes - 1 : post.likes + 1,
@@ -144,7 +144,7 @@ export default function PostCard({
   };
 
   const handleSave = () => {
-    onChange({
+    onChange?.({
       ...post,
       saved: !post.saved,
     });
@@ -172,7 +172,7 @@ export default function PostCard({
         : {}),
     } as Post;
 
-    onChange(updatedPost);
+    onChange?.(updatedPost);
 
     onEdit?.(updatedPost);
 
@@ -247,7 +247,7 @@ export default function PostCard({
 
     setPinned(nextPinned);
 
-    onChange({
+    onChange?.({
       ...post,
       ...(nextPinned ? { pinned: true } : { pinned: false }),
     } as Post);
